@@ -24,6 +24,7 @@ import { RequestPhoneChangeDto } from './dto/request-phone-change.dto';
 import { VerifyPhoneChangeDto } from './dto/verify-phone-change.dto';
 import { SyncPhoneIfEmptyDto } from './dto/sync-phone-if-empty.dto';
 import { PhoneChangeService } from './phone-change.service';
+import { UserBlocksService } from './user-blocks.service';
 import type { User } from '@prisma/client';
 
 @Controller('users')
@@ -34,6 +35,7 @@ export class UsersController {
     private readonly addressBookService: AddressBookService,
     private readonly peerContactService: PeerContactService,
     private readonly phoneChangeService: PhoneChangeService,
+    private readonly userBlocksService: UserBlocksService,
   ) {}
 
   @Get('me')
@@ -131,6 +133,21 @@ export class UsersController {
   @Post('me/phone/sync-if-empty')
   async syncPhoneIfEmpty(@CurrentUser() user: User, @Body() dto: SyncPhoneIfEmptyDto) {
     return this.phoneChangeService.syncPhoneIfEmpty(user.id, dto.phone);
+  }
+
+  @Get('me/blocks')
+  async listMyBlocks(@CurrentUser() user: User) {
+    return this.userBlocksService.listBlockedUserIds(user.id);
+  }
+
+  @Post(':id/block')
+  async blockUser(@Param('id') targetId: string, @CurrentUser() user: User) {
+    return this.userBlocksService.block(user.id, targetId);
+  }
+
+  @Delete(':id/block')
+  async unblockUser(@Param('id') targetId: string, @CurrentUser() user: User) {
+    return this.userBlocksService.unblock(user.id, targetId);
   }
 
   @Get(':id')

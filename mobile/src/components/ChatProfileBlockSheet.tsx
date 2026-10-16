@@ -14,7 +14,6 @@ import { useTheme } from '../contexts/ThemeContext';
 import { withAlpha } from '../theme/stylePrimitives';
 
 const DANGER = '#FF453A';
-const CANCEL_GREEN = '#34C759';
 
 type Props = {
   visible: boolean;
@@ -106,7 +105,8 @@ export function ChatProfileBlockSheet({
         >
           <View style={[styles.card, { backgroundColor: sheetBg, borderColor: colors.separator }]}>
             <Text style={[styles.caption, { color: captionColor }]}>
-              Запретить {peerName} писать Вам сообщения и звонить через приложение?
+              Запретить {peerName} писать вам сообщения и звонить? Вы тоже не сможете писать этому
+              пользователю, пока не разблокируете его.
             </Text>
             <Pressable
               onPress={() => {
@@ -124,7 +124,7 @@ export function ChatProfileBlockSheet({
               onPress={handleRequestClose}
               style={({ pressed }) => [styles.cancelBtn, pressed && { opacity: 0.85 }]}
             >
-              <Text style={[styles.cancelBtnText, { color: CANCEL_GREEN }]}>Отмена</Text>
+              <Text style={[styles.cancelBtnText, { color: colors.accent }]}>Отмена</Text>
             </Pressable>
           </View>
         </Animated.View>

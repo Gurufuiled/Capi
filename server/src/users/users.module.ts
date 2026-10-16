@@ -4,13 +4,14 @@ import { UsersService } from './users.service';
 import { AddressBookService } from './address-book.service';
 import { PeerContactService } from './peer-contact.service';
 import { PhoneChangeService } from './phone-change.service';
+import { UserBlocksService } from './user-blocks.service';
 import { PushModule } from '../push/push.module';
 import { AuthModule } from '../auth/auth.module';
 
 @Module({
   imports: [PushModule, AuthModule],
   controllers: [UsersController],
-  providers: [UsersService, AddressBookService, PeerContactService, PhoneChangeService],
+  providers: [UsersService, AddressBookService, PeerContactService, PhoneChangeService, UserBlocksService],
   exports: [UsersService],
 })
 export class UsersModule {}

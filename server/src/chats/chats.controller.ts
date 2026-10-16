@@ -8,7 +8,9 @@ import {
   Post,
   UseGuards,
 } from '@nestjs/common';
-import { ChatsService } from './chats.service';
+import { ChatsService } from './chats.service';
+import { LeaveGroupDto } from './dto/leave-group.dto';
+import { TransferOwnerDto } from './dto/transfer-owner.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { CurrentUser } from '../common';
 import { CreateChatDto } from './dto/create-chat.dto';
@@ -218,8 +220,21 @@ export class ChatsController {
   }
 
   @Post(':id/leave')
-  async leaveGroup(@Param('id') chatId: string, @CurrentUser() user: User) {
-    return this.chatsService.leaveGroup(user, chatId);
+  async leaveGroup(
+    @Param('id') chatId: string,
+    @CurrentUser() user: User,
+    @Body() dto: LeaveGroupDto,
+  ) {
+    return this.chatsService.leaveGroup(user, chatId, dto ?? {});
+  }
+
+  @Post(':id/transfer-owner')
+  async transferOwner(
+    @Param('id') chatId: string,
+    @Body() dto: TransferOwnerDto,
+    @CurrentUser() user: User,
+  ) {
+    return this.chatsService.transferGroupOwnership(user, chatId, dto.user_id);
   }
 
   @Delete(':id')

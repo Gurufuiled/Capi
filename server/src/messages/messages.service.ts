@@ -1,4 +1,5 @@
-import { randomUUID } from 'node:crypto';
+import { randomUUID } from 'node:crypto';
+import { findUserBlock } from '../users/user-blocks.service';
 import {
   BadRequestException,
   ForbiddenException,
@@ -261,6 +262,22 @@ export class MessagesService {
         },
       },
     });
+
+    if (chatMeta?.chatType === ChatType.private) {
+      const peer = await this.prisma.chatMember.findFirst({
+        where: { chatId, userId: { not: senderId } },
+        select: { userId: true },
+      });
+      if (peer) {
+        const block = await findUserBlock(this.prisma, senderId, peer.userId);
+        if (block === 'blocked_by_me') {
+          throw new ForbiddenException('You have blocked this user');
+        }
+        if (block === 'blocked_by_peer') {
+          throw new ForbiddenException('You cannot message this user');
+        }
+      }
+    }
 
     if (chatMeta?.chatType === ChatType.group && chatMeta.members[0]) {
       const effective = getEffectiveGroupPermissions(

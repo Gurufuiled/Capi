@@ -344,8 +344,15 @@ export async function removeGroupMember(chatId: string, memberId: string): Promi
   }
 }
 
-export async function leaveGroup(chatId: string): Promise<void> {
-  const res = await apiPost(`/chats/${encodeURIComponent(chatId)}/leave`);
+/**
+ * Leave a group. The owner must pass `transfer_to_user_id` (hand the group over)
+ * or `delete_group: true` (no other admins: leaving deletes the group for everyone).
+ */
+export async function leaveGroup(
+  chatId: string,
+  options?: { transfer_to_user_id?: string; delete_group?: boolean },
+): Promise<void> {
+  const res = await apiPost(`/chats/${encodeURIComponent(chatId)}/leave`, options ?? {});
   if (!res.ok) {
     const text = await res.text();
     throw new Error(text || `Failed to leave group: ${res.status}`);

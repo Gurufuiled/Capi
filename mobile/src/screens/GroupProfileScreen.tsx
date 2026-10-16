@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { countWithPlural, SUBSCRIBER_FORMS, MEMBER_FORMS, COMMENT_FORMS } from '../utils/pluralRu';
 import Feather from '@expo/vector-icons/Feather';
 import {
   Alert,
@@ -23,6 +24,7 @@ import {
 } from '../components/AnchoredPopoverMenu';
 import { GroupAddMembersModal } from '../components/group-profile/GroupAddMembersModal';
 import { GroupMemberTagModal } from '../components/group-profile/GroupMemberTagModal';
+import { GroupTransferOwnerModal } from '../components/group-profile/GroupTransferOwnerModal';
 import {
   DEFAULT_MEMBER_TAG_COLOR,
   isGroupMemberTagColor,
@@ -106,7 +108,7 @@ function formatMemberCount(count: number) {
   if (count % 10 >= 2 && count % 10 <= 4 && (count % 100 < 10 || count % 100 >= 20)) {
     return `${count} участника`;
   }
-  return `${count} участников`;
+  return countWithPlural(count, MEMBER_FORMS);
 }
 
 
@@ -1020,33 +1022,71 @@ export function GroupProfileScreen() {
     }
   }, [chat, closeAddMembers, selectedUsers]);
 
+  const [transferOwnerVisible, setTransferOwnerVisible] = useState(false);
+
+  const otherAdmins = useMemo(
+    () =>
+      members
+        .filter((member) => member.role === 'admin' && member.user_id !== currentUserId)
+        .map((member) => ({
+          id: member.user_id,
+          name:
+            [member.user?.display_name, member.user?.last_name].filter(Boolean).join(' ').trim() ||
+            member.user?.username ||
+            'Администратор',
+        })),
+    [currentUserId, members],
+  );
+
+  const finishLeaving = useCallback(
+    async (chatId: string, options?: { transfer_to_user_id?: string; delete_group?: boolean }) => {
+      try {
+        await leaveGroup(chatId, options);
+        await new ChatDao().delete(chatId);
+        messageStore.getState().clearMessages(chatId);
+        chatStore.getState().removeChat(chatId);
+        navigation.navigate('ChatList');
+      } catch (error) {
+        Alert.alert(
+          'Не удалось выйти из группы',
+          error instanceof Error ? error.message : 'Попробуйте ещё раз чуть позже.'
+        );
+      }
+    },
+    [navigation]
+  );
+
   const handleLeaveGroup = useCallback(() => {
     if (!chat) return;
     closeMoreMenu();
-    Alert.alert('Покинуть группу?', 'Ты выйдешь из этой группы и чат исчезнет из списка.', [
+    if (isOwner) {
+      if (otherAdmins.length > 0) {
+        setTransferOwnerVisible(true);
+        return;
+      }
+      Alert.alert(
+        'Покинуть и удалить группу?',
+        'В группе нет других администраторов, поэтому при выходе она будет удалена для всех участников. Это действие нельзя отменить.',
+        [
+          { text: 'Отмена', style: 'cancel' },
+          {
+            text: 'Удалить группу',
+            style: 'destructive',
+            onPress: () => void finishLeaving(chat.id, { delete_group: true }),
+          },
+        ]
+      );
+      return;
+    }
+    Alert.alert('Покинуть группу?', 'Вы выйдете из этой группы, и чат исчезнет из списка.', [
       { text: 'Отмена', style: 'cancel' },
       {
         text: 'Покинуть',
         style: 'destructive',
-        onPress: () => {
-          void (async () => {
-            try {
-              await leaveGroup(chat.id);
-              await new ChatDao().delete(chat.id);
-              messageStore.getState().clearMessages(chat.id);
-              chatStore.getState().removeChat(chat.id);
-              navigation.navigate('ChatList');
-            } catch (error) {
-              Alert.alert(
-                'Не удалось выйти из группы',
-                error instanceof Error ? error.message : 'Попробуй ещё раз чуть позже.'
-              );
-            }
-          })();
-        },
+        onPress: () => void finishLeaving(chat.id),
       },
     ]);
-  }, [chat, closeMoreMenu, navigation]);
+  }, [chat, closeMoreMenu, finishLeaving, isOwner, otherAdmins.length]);
 
   const handleDeleteGroup = useCallback(() => {
     if (!chat) return;
@@ -1084,7 +1124,7 @@ export function GroupProfileScreen() {
         {
           key: 'toggle-pin',
           label: isPinned ? 'Открепить' : 'Закрепить',
-          icon: 'pin' as any,
+          capiIcon: isPinned ? 'pinOff' : 'pin',
         },
       ];
       if (isAdmin) {
@@ -1102,14 +1142,12 @@ export function GroupProfileScreen() {
           color: '#D04857',
         });
       }
-      if (!isOwner) {
-        items.push({
-          key: 'leave-group',
-          label: 'Покинуть группу',
-          icon: 'log-out',
-          color: '#D04857',
-        });
-      }
+      items.push({
+        key: 'leave-group',
+        label: 'Покинуть группу',
+        icon: 'log-out',
+        color: '#D04857',
+      });
       return items;
     },
     [isAdmin, isOwner, isPinned]
@@ -1501,6 +1539,15 @@ export function GroupProfileScreen() {
         onClose={() => setFloatingVideoNote(null)}
       />
 
+      <GroupTransferOwnerModal
+        visible={transferOwnerVisible}
+        admins={otherAdmins}
+        onClose={() => setTransferOwnerVisible(false)}
+        onPick={(userId) => {
+          setTransferOwnerVisible(false);
+          if (chat) void finishLeaving(chat.id, { transfer_to_user_id: userId });
+        }}
+      />
 
       <GroupMemberTagModal
         visible={tagEditorMember != null}

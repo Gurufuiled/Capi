@@ -121,6 +121,9 @@ model User {
   peerContactOverridesOwned PeerContactCustomization[] @relation("PeerContactOwner")
   /** Overrides where this user is the peer (not visible to them). */
   peerContactOverridesAsPeer PeerContactCustomization[] @relation("PeerContactPeer")
+  /** Users this user has blocked / users who have blocked this user. */
+  blocksMade     UserBlock[] @relation("UserBlockBlocker")
+  blocksReceived UserBlock[] @relation("UserBlockBlocked")
 
   @@map("users")
 }
@@ -145,6 +148,20 @@ model PeerContactCustomization {
   @@unique([ownerUserId, peerUserId])
   @@index([ownerUserId])
   @@map("peer_contact_customizations")
+}
+
+/** Server-side user block: blocker cannot message/call blocked and vice versa (1:1 chats and calls). */
+model UserBlock {
+  blockerId String   @map("blocker_id")
+  blockedId String   @map("blocked_id")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  blocker User @relation("UserBlockBlocker", fields: [blockerId], references: [id], onDelete: Cascade)
+  blocked User @relation("UserBlockBlocked", fields: [blockedId], references: [id], onDelete: Cascade)
+
+  @@id([blockerId, blockedId])
+  @@index([blockedId])
+  @@map("user_blocks")
 }
 
 /** OTP для смены телефона (SMS в проде подключается отдельно; код отдаётся в ответе только в dev). */

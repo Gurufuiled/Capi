@@ -1,6 +1,7 @@
 import { randomUUID } from 'node:crypto';
 import {
   BadRequestException,
+  ConflictException,
   ForbiddenException,
   Injectable,
   NotFoundException,
@@ -952,7 +953,15 @@ export class ChatsService {
     return this.mapChatForUser(updatedChat, currentUser.id);
   }
 
-  async leaveGroup(currentUser: User, chatId: string): Promise<{ ok: true }> {
+  /**
+   * Member leaves a group. The owner must either hand the group over (`transfer_to_user_id`)
+   * or, when there are no other admins, confirm deleting it (`delete_group`).
+   */
+  async leaveGroup(
+    currentUser: User,
+    chatId: string,
+    dto: { transfer_to_user_id?: string; delete_group?: boolean } = {},
+  ): Promise<{ ok: true }> {
     const chat = await this.getGroupChatForUserOrThrow(chatId, currentUser.id);
     const currentMembership = chat.members.find(
       (member) => member.userId === currentUser.id,
@@ -963,9 +972,41 @@ export class ChatsService {
     }
 
     if (currentMembership.role === ChatMemberRole.owner) {
-      throw new ForbiddenException(
-        'The owner must delete the group instead of leaving it',
+      const otherAdmins = chat.members.filter(
+        (member) =>
+          member.userId !== currentUser.id &&
+          member.role === ChatMemberRole.admin,
       );
+
+      if (dto.transfer_to_user_id) {
+        await this.transferGroupOwnership(
+          currentUser,
+          chatId,
+          dto.transfer_to_user_id,
+        );
+        await this.prisma.chatMember.delete({
+          where: { chatId_userId: { chatId, userId: currentUser.id } },
+        });
+        return { ok: true };
+      }
+
+      if (otherAdmins.length > 0) {
+        throw new ConflictException({
+          code: 'OWNER_MUST_TRANSFER',
+          message: 'Transfer ownership to an admin before leaving the group',
+          admin_user_ids: otherAdmins.map((member) => member.userId),
+        });
+      }
+
+      if (!dto.delete_group) {
+        throw new ConflictException({
+          code: 'OWNER_LEAVE_DELETES_GROUP',
+          message:
+            'The group has no other admins: leaving deletes it for everyone',
+        });
+      }
+
+      return this.deleteChat(currentUser, chatId);
     }
 
     await this.prisma.chatMember.delete({
@@ -976,6 +1017,39 @@ export class ChatsService {
         },
       },
     });
+
+    return { ok: true };
+  }
+
+  /** Owner hands the group over: the target becomes owner, the previous owner becomes admin. */
+  async transferGroupOwnership(
+    currentUser: User,
+    chatId: string,
+    targetUserId: string,
+  ): Promise<{ ok: true }> {
+    const chat = await this.getGroupChatForUserOrThrow(chatId, currentUser.id);
+    const me = chat.members.find((member) => member.userId === currentUser.id);
+    if (!me || me.role !== ChatMemberRole.owner) {
+      throw new ForbiddenException('Only the group owner can transfer ownership');
+    }
+    if (targetUserId === currentUser.id) {
+      throw new BadRequestException('You are already the owner');
+    }
+    const target = chat.members.find((member) => member.userId === targetUserId);
+    if (!target) {
+      throw new NotFoundException('The new owner must be a member of the group');
+    }
+
+    await this.prisma.$transaction([
+      this.prisma.chatMember.update({
+        where: { chatId_userId: { chatId, userId: targetUserId } },
+        data: { role: ChatMemberRole.owner, adminPermissions: Prisma.DbNull },
+      }),
+      this.prisma.chatMember.update({
+        where: { chatId_userId: { chatId, userId: currentUser.id } },
+        data: { role: ChatMemberRole.admin },
+      }),
+    ]);
 
     return { ok: true };
   }

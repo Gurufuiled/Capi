@@ -5,7 +5,8 @@ import {
   OnGatewayConnection,
   OnGatewayDisconnect,
 } from '@nestjs/websockets';
-import { Server } from 'ws';
+import { Server } from 'ws';
+import { findUserBlock } from '../users/user-blocks.service';
 import { Injectable, Logger } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { PrismaService } from '../prisma/prisma.service';
@@ -139,6 +140,11 @@ export class SignalingGateway
     const ids = new Set(chat.members.map((m) => m.userId));
     if (!ids.has(client.userId) || !ids.has(recipientId)) {
       client.send(JSON.stringify({ type: 'dm_fallback', ack_key: ackKey, reason: 'invalid_chat' }));
+      return;
+    }
+
+    if (await findUserBlock(this.prisma, client.userId, recipientId)) {
+      client.send(JSON.stringify({ type: 'dm_fallback', ack_key: ackKey, reason: 'blocked' }));
       return;
     }
 
@@ -296,7 +302,7 @@ export class SignalingGateway
   }
 
   @SubscribeMessage('offer')
-  handleOffer(
+  async handleOffer(
     client: AuthenticatedSocket,
     payload: {
       target_user_id: string;
@@ -307,6 +313,7 @@ export class SignalingGateway
     if (!client.userId) return;
     const { target_user_id: targetUserId, offer, call_type: callType } = payload;
     if (!targetUserId || !offer) return;
+    if (await findUserBlock(this.prisma, client.userId, targetUserId)) return;
 
     const data = JSON.stringify({
       type: 'offer',

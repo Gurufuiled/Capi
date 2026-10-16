@@ -52,6 +52,11 @@ import { authStore } from '../stores/authStore';
 import { messageStore } from '../stores/messageStore';
 import type { Message } from '../stores/types';
 import { uiStore } from '../stores/uiStore';
+import {
+  blockUserOnServer,
+  fetchBlockedUserIds,
+  unblockUserOnServer,
+} from '../services/userBlockService';
 import { useTheme } from '../contexts/ThemeContext';
 import {
   createChatProfileScreenStyles,
@@ -65,7 +70,6 @@ if (Platform.OS === 'android') {
   UIManager.setLayoutAnimationEnabledExperimental?.(true);
 }
 
-const WALLPAPER_MENU_ICON = require('../../assets/telegram-msg-background-wallpaper-icon.png');
 
 type ChatProfileRoute = RouteProp<ChatsStackParamList, 'ChatProfile'>;
 type ChatProfileNavigation = NativeStackNavigationProp<ChatsStackParamList, 'ChatProfile'>;
@@ -269,13 +273,12 @@ function buildInfoRows(profile: ApiUser | null): InfoRow[] {
     });
   }
 
-  if (profile?.handle?.trim() || profile?.username?.trim()) {
+  // Только ник: `username` в API может быть e-mail из входа, его собеседнику показывать нельзя.
+  if (profile?.handle?.trim()) {
     rows.push({
       id: 'username',
       label: 'Имя пользователя',
-      value: profile?.handle?.trim()
-        ? `@${profile.handle.trim()}`
-        : profile?.username?.trim() || 'Не указано',
+      value: `@${profile.handle.trim()}`,
       icon: 'at-sign',
     });
   }
@@ -348,7 +351,8 @@ export function ChatProfileScreen() {
   const navigation = useNavigation<ChatProfileNavigation>();
   const route = useRoute<ChatProfileRoute>();
   const { chatId, userId, chatTitle } = route.params;
-  const { colors: themeColors } = useTheme();
+  const { colors: themeColors, resolvedScheme } = useTheme();
+  const statusBarStyle = resolvedScheme === 'dark' ? 'light-content' : 'dark-content';
   const styles = useMemo(
     () => createChatProfileScreenStyles(themeColors),
     [themeColors],
@@ -777,8 +781,29 @@ export function ChatProfileScreen() {
     })();
   }, [chat, chatId, closeMoreMenu, deleteChatLocally, handleDeleteForMeOnlyFromPanel]);
 
+  // Источник правды по блокировке — сервер: подтягиваем актуальный список при открытии профиля.
+  useEffect(() => {
+    let cancelled = false;
+    void fetchBlockedUserIds()
+      .then((ids) => {
+        if (cancelled) return;
+        uiStore.getState().setUserBlocked(userId, ids.includes(userId));
+      })
+      .catch(() => undefined);
+    return () => {
+      cancelled = true;
+    };
+  }, [userId]);
+
   const handleConfirmBlockFromSheet = useCallback(() => {
-    uiStore.getState().setUserBlocked(userId, true);
+    void blockUserOnServer(userId)
+      .then(() => uiStore.getState().setUserBlocked(userId, true))
+      .catch((e) =>
+        Alert.alert(
+          'Не удалось заблокировать',
+          e instanceof Error ? e.message : 'Попробуйте ещё раз чуть позже.',
+        ),
+      );
   }, [userId]);
 
   const handleBlockMenuItem = useCallback(() => {
@@ -786,14 +811,23 @@ export function ChatProfileScreen() {
       closeMoreMenu(() => {
         Alert.alert(
           'Разблокировать?',
-          `${displayName} снова сможет писать вам (локально на этом устройстве).`,
+          `${displayName} снова сможет писать вам и звонить.`,
           [
             { text: 'Отмена', style: 'cancel' },
             {
               text: 'Разблокировать',
               onPress: () => {
-                uiStore.getState().setUserBlocked(userId, false);
-                Alert.alert('Готово', `${displayName} разблокирован.`);
+                void unblockUserOnServer(userId)
+                  .then(() => {
+                    uiStore.getState().setUserBlocked(userId, false);
+                    Alert.alert('Готово', `${displayName} разблокирован.`);
+                  })
+                  .catch((e) =>
+                    Alert.alert(
+                      'Не удалось разблокировать',
+                      e instanceof Error ? e.message : 'Попробуйте ещё раз чуть позже.',
+                    ),
+                  );
               },
             },
           ],
@@ -894,14 +928,14 @@ export function ChatProfileScreen() {
     () => [
       {
         key: 'change-wallpaper',
-        label: 'Изменить обои',
-        iconImage: WALLPAPER_MENU_ICON,
-        ...{ label: 'Оформление чата' },
+        label: 'Оформление чата',
+        capiIcon: 'palette',
       },
       {
         key: 'delete-chat',
         label: 'Удалить чат',
         icon: 'trash-2',
+        danger: true,
       },
       {
         key: 'toggle-block',
@@ -962,7 +996,7 @@ export function ChatProfileScreen() {
 
   return (
     <View style={styles.screen}>
-      <StatusBar barStyle="dark-content" />
+      <StatusBar barStyle={statusBarStyle} />
 
       <Animated.ScrollView
         bounces
@@ -1047,7 +1081,7 @@ export function ChatProfileScreen() {
           style={styles.editScreen}
           behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         >
-          <StatusBar barStyle="dark-content" />
+          <StatusBar barStyle={statusBarStyle} />
           <View style={[styles.editTopBar, { paddingTop: Math.max(insets.top + 8, 18) }]}>
             <Pressable
               onPress={closeEditContact}
