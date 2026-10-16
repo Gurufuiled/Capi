@@ -13,13 +13,12 @@ import {
 } from '../screens';
 import { MiniAppScreen } from '../screens/MiniAppScreen';
 import { useTheme } from '../contexts/ThemeContext';
-import { getSettingsPalette } from '../screens/settingsPalette';
 import type { SettingsStackParamList } from './types';
 
 const Stack = createNativeStackNavigator<SettingsStackParamList>();
 
 export function SettingsStack() {
-  const { colors, resolvedScheme } = useTheme();
+  const { colors } = useTheme();
   return (
     <Stack.Navigator
       id={undefined as never}
@@ -36,7 +35,7 @@ export function SettingsStack() {
         component={SettingsScreen}
         options={{
           title: 'Настройки',
-          headerStyle: { backgroundColor: getSettingsPalette(resolvedScheme).background },
+          headerStyle: { backgroundColor: colors.chatBackground },
         }}
       />
       <Stack.Screen

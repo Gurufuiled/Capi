@@ -1,146 +1,76 @@
 import { StyleSheet } from 'react-native';
 
 import type { ThemeColors } from '../theme/palettes';
-import type { SettingsPalette } from './settingsPalette';
 
-export const SETTINGS_AVATAR_SIZE = 76;
-
-export function createSettingsScreenStyles(_c: ThemeColors, p: SettingsPalette) {
+/** Capi V3 settings: flat list without cards, account block with a camera badge on the avatar. */
+export function createSettingsScreenStyles(c: ThemeColors) {
   return StyleSheet.create({
-    container: { flex: 1, backgroundColor: p.background },
-    scroll: { paddingHorizontal: 12, paddingTop: 8, paddingBottom: 48 },
-    center: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: p.background },
-    sectionTitle: {
-      fontSize: 11,
-      fontWeight: '700',
-      color: p.sectionTitle,
-      textTransform: 'uppercase',
-      letterSpacing: 0.8,
-      marginTop: 18,
-      marginBottom: 8,
-      marginLeft: 6,
+    container: { flex: 1, backgroundColor: c.chatBackground },
+    scroll: { paddingHorizontal: 16, paddingTop: 8, paddingBottom: 48 },
+    center: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: c.chatBackground },
+    errorBox: {
+      backgroundColor: '#ffebee',
+      padding: 12,
+      borderRadius: 8,
+      marginBottom: 16,
     },
-    card: {
-      borderRadius: 22,
-      overflow: 'hidden',
-      backgroundColor: p.card,
-      borderWidth: StyleSheet.hairlineWidth,
-      borderColor: p.cardBorder,
-    },
-    heroCard: {
-      alignItems: 'center',
-      paddingTop: 18,
-      paddingBottom: 14,
-      paddingHorizontal: 16,
-      borderRadius: 22,
-      backgroundColor: p.card,
-      borderWidth: StyleSheet.hairlineWidth,
-      borderColor: p.cardBorder,
-    },
-    heroAvatarWrap: {
-      width: SETTINGS_AVATAR_SIZE,
-      height: SETTINGS_AVATAR_SIZE,
-    },
-    heroAvatar: {
-      width: SETTINGS_AVATAR_SIZE,
-      height: SETTINGS_AVATAR_SIZE,
-      borderRadius: SETTINGS_AVATAR_SIZE / 2,
-      overflow: 'hidden',
+    errorText: { color: '#c62828', fontSize: 14 },
+
+    account: { alignItems: 'center', paddingTop: 4, paddingBottom: 6 },
+    avatarWrap: { width: 76, height: 76, marginBottom: 8 },
+    avatar: { width: 76, height: 76, borderRadius: 38 },
+    avatarPlaceholder: {
+      width: 76,
+      height: 76,
+      borderRadius: 38,
       alignItems: 'center',
       justifyContent: 'center',
     },
-    heroAvatarInitial: {
-      color: '#FFFFFF',
-      fontSize: 32,
-      fontWeight: '700',
-    },
-    heroAvatarOverlay: {
+    avatarPlaceholderText: { color: '#FFFFFF', fontSize: 32, fontWeight: '700' },
+    avatarOverlay: {
       ...StyleSheet.absoluteFillObject,
-      borderRadius: SETTINGS_AVATAR_SIZE / 2,
+      borderRadius: 38,
       backgroundColor: 'rgba(0,0,0,0.45)',
       justifyContent: 'center',
       alignItems: 'center',
     },
-    heroCameraBadge: {
+    cameraBadge: {
       position: 'absolute',
-      right: -2,
-      bottom: -2,
-      width: 26,
-      height: 26,
-      borderRadius: 13,
-      backgroundColor: p.cameraBadge,
-      borderWidth: 2.5,
-      borderColor: p.card,
+      right: -4,
+      bottom: -4,
+      width: 28,
+      height: 28,
+      borderRadius: 14,
+      borderWidth: 3,
+      borderColor: c.chatBackground,
       alignItems: 'center',
       justifyContent: 'center',
     },
-    heroTitle: {
-      marginTop: 12,
-      fontSize: 19,
-      fontWeight: '800',
-      color: p.title,
-      textAlign: 'center',
-    },
-    heroMeta: {
-      marginTop: 4,
+    name: { fontSize: 19, fontWeight: '600', color: c.textPrimary, textAlign: 'center' },
+    meta: { marginTop: 2, fontSize: 13, color: c.textSecondary, textAlign: 'center' },
+    changePhotoLink: { marginTop: 6, paddingVertical: 4, paddingHorizontal: 8 },
+    changePhotoText: { fontSize: 15, fontWeight: '600', color: c.accent },
+
+    groupLabel: {
+      paddingTop: 14,
+      paddingLeft: 4,
       fontSize: 12,
-      color: p.meta,
-      textAlign: 'center',
+      fontWeight: '600',
+      letterSpacing: 0.7,
+      textTransform: 'uppercase',
+      color: c.textSecondary,
     },
-    heroChangePhoto: {
-      marginTop: 10,
-      paddingVertical: 4,
-      paddingHorizontal: 12,
-    },
-    heroChangePhotoText: {
-      fontSize: 14,
-      fontWeight: '700',
-      color: p.link,
-    },
-    row: {
+    group: { marginTop: 2 },
+
+    logoutRow: {
       flexDirection: 'row',
       alignItems: 'center',
-      paddingVertical: 10,
-      paddingHorizontal: 14,
-      minHeight: 56,
+      gap: 8,
+      height: 50,
+      marginTop: 14,
+      paddingHorizontal: 4,
     },
-    rowPressed: { backgroundColor: p.cardPressed },
-    rowSoon: { opacity: 0.55 },
-    rowDivider: {
-      borderBottomWidth: StyleSheet.hairlineWidth,
-      borderBottomColor: p.divider,
-    },
-    tile: {
-      width: 36,
-      height: 36,
-      borderRadius: 11,
-      backgroundColor: p.tileBg,
-      alignItems: 'center',
-      justifyContent: 'center',
-      marginRight: 12,
-    },
-    tileDanger: { backgroundColor: p.dangerTile },
-    rowText: { flex: 1, minWidth: 0 },
-    rowTitle: { fontSize: 15, fontWeight: '700', color: p.title },
-    rowTitleDanger: { color: p.danger },
-    rowSubtitle: { marginTop: 1, fontSize: 12, lineHeight: 16, color: p.subtitle },
-    soonLabel: { fontSize: 11, fontWeight: '600', color: p.soon, marginLeft: 8 },
-    statusBadge: {
-      paddingHorizontal: 8,
-      paddingVertical: 3,
-      borderRadius: 8,
-      marginLeft: 8,
-    },
-    statusBadgeText: { fontSize: 11, fontWeight: '700' },
-    chevronWrap: { marginLeft: 6, width: 18, alignItems: 'flex-end' },
-    logoutCard: { marginTop: 16 },
-    logoutRow: { justifyContent: 'center' },
-    errorBox: {
-      backgroundColor: p.errorBg,
-      padding: 12,
-      borderRadius: 12,
-      marginBottom: 8,
-    },
-    errorText: { color: p.errorText, fontSize: 14 },
+    logoutText: { fontSize: 16, fontWeight: '600' },
+    version: { marginTop: 4, textAlign: 'center', fontSize: 12, color: c.textSecondary },
   });
 }

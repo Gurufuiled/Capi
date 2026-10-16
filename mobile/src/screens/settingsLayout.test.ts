@@ -1,37 +1,37 @@
 /**
- * Контрактный тест оформления экрана настроек (макет: лавандовый фон, белые карточки секций, плитки-иконки,
- * «Скоро» вместо бейджа). Проверяем по исходникам: экран слишком тяжёлый для юнит-рендера.
+ * Контрактный тест оформления экрана настроек Capi (вариант V3: плоский список без карточек, четыре группы,
+ * «Скоро» приглушённо, камера на аватаре). Проверяем по исходникам: экран слишком тяжёлый для юнит-рендера.
  */
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { getSettingsPalette } from './settingsPalette';
+import { darkPalette, lightPalette } from '../theme/palettes';
 
 const settings = readFileSync(join(__dirname, 'SettingsScreen.tsx'), 'utf8');
 
-// секции идут в порядке макета
-const sections = ['Подключения', 'Приложение', 'Безопасность', 'Поддержка'];
+// группы идут в порядке макета
+const groups = ['Подключения', 'Приложение', 'Безопасность', 'Поддержка'];
 let last = -1;
-for (const title of sections) {
-  const at = settings.indexOf(`<Text style={styles.sectionTitle}>${title}</Text>`);
-  assert.ok(at > last, `секция «${title}» отсутствует или стоит не по порядку`);
+for (const title of groups) {
+  const at = settings.indexOf(`<Text style={styles.groupLabel}>${title}</Text>`);
+  assert.ok(at > last, `группа «${title}» отсутствует или стоит не по порядку`);
   last = at;
 }
 
-// строки внутри секций — в порядке макета
+// строки внутри групп — в порядке макета
 const rowOrder = [
-  "title: 'Telegram'",
-  "title: 'Сервисы'",
-  "title: 'Оформление'",
-  "title: 'Настройки чатов'",
-  "title: 'Уведомления и звуки'",
-  "title: 'Язык'",
-  "title: 'Данные и память'",
-  "title: 'Конфиденциальность'",
-  "title: 'Пароль и безопасность'",
-  "title: 'Устройства'",
-  "title: 'Сообщить о баге'",
-  "title: 'Предложения'",
+  'title="Telegram"',
+  'title="Сервисы"',
+  'title="Оформление"',
+  'title="Настройки чатов"',
+  'title="Уведомления и звуки"',
+  'title="Язык"',
+  'title="Данные и память"',
+  'title="Конфиденциальность"',
+  'title="Пароль и безопасность"',
+  'title="Устройства"',
+  'title="Сообщить о баге"',
+  'title="Предложения"',
 ];
 last = -1;
 for (const row of rowOrder) {
@@ -41,25 +41,22 @@ for (const row of rowOrder) {
 }
 assert.ok(settings.indexOf('Выйти из аккаунта') > last, 'выход стоит последним');
 
-// нереализованные разделы помечены «Скоро» и приглушены, рабочие — нет
-assert.equal((settings.match(/soon: true/g) ?? []).length, 6, 'ровно 6 разделов «Скоро»');
-assert.match(settings, /Подключено|telegramConnectionMeta\.subtitle/);
+// нереализованные разделы помечены «Скоро» (проп `soon`) и приглушены, рабочие — нет
+assert.equal((settings.match(/^\s+soon$/gm) ?? []).length, 6, 'ровно 6 разделов «Скоро»');
+assert.match(settings, /telegramConnectionMeta\.subtitle/);
 assert.match(settings, /Изменить фотографию/);
 assert.match(settings, /settings-hero-camera/, 'значок камеры на аватаре');
 
-// старые подписи не вернулись
+// карточек и старых подписей нет
 assert.doesNotMatch(settings, /Мини-приложения и ChatusFather/);
 assert.doesNotMatch(settings, />Обратная связь</);
+assert.doesNotMatch(settings, /styles\.card\b/, 'экран без карточек');
 
-// палитры светлой и тёмной темы: лавандовый светлый фон и тёмный фон с карточками светлее фона
-const light = getSettingsPalette('light');
-const dark = getSettingsPalette('dark');
-assert.equal(light.card, '#FFFFFF');
-assert.notEqual(light.background, light.card);
-assert.notEqual(dark.background, dark.card);
-assert.notEqual(light.background, dark.background);
-for (const key of Object.keys(light) as (keyof typeof light)[]) {
-  assert.ok(dark[key] !== undefined, `в тёмной палитре нет ${key}`);
+// палитры: одинаковые ключи, светлая и тёмная различаются
+for (const key of Object.keys(lightPalette) as (keyof typeof lightPalette)[]) {
+  assert.ok(darkPalette[key] !== undefined, `в тёмной палитре нет ${key}`);
 }
+assert.notEqual(lightPalette.chatBackground, darkPalette.chatBackground);
+assert.equal(lightPalette.accent, '#6D3FE0');
 
 console.log('settingsLayout.test.ts: ok');

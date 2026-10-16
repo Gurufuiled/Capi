@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
@@ -10,6 +10,8 @@ import {
   View,
 } from 'react-native';
 import { Image } from 'expo-image';
+import Constants from 'expo-constants';
+import { LinearGradient } from 'expo-linear-gradient';
 import { useAuth } from '../contexts/AuthContext';
 import { authStore } from '../stores/authStore';
 import { authService, apiUserToUserRow } from '../services/AuthService';
@@ -20,25 +22,26 @@ import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import type { SettingsStackParamList } from '../navigation/types';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
-import { LinearGradient } from 'expo-linear-gradient';
 import { AvatarPickSheet, type AvatarPickResult } from '../components/AvatarPickSheet';
+import { CapiSettingsRow } from '../components/settings/CapiSettingsRow';
+import { CapiIcon } from '../components/capi/CapiIcon';
 import { useTheme } from '../contexts/ThemeContext';
+import { BRAND, BRAND_GRADIENT_END, BRAND_GRADIENT_START } from '../theme/brand';
 import { createSettingsScreenStyles } from './settingsScreen.styles';
-import { getSettingsPalette } from './settingsPalette';
 import { telegramAccountStore } from '../stores/telegramAccountStore';
 import { getTelegramSettingsConnectionMeta } from './telegramAuth/telegramAuthPresentation';
 import { friendlyApiError } from '../utils/apiErrorMessage';
 
-type IconName = React.ComponentProps<typeof MaterialCommunityIcons>['name'];
-
 /** Не перезапрашивать профиль чаще, чем раз в это время, если прошлая загрузка удалась. */
 const PROFILE_REFRESH_MIN_INTERVAL_MS = 30_000;
 
+/**
+ * Settings (Capi V3): flat list without cards, four labelled groups,
+ * account block with a camera badge on the avatar and a «Изменить фотографию» link.
+ */
 export function SettingsScreen() {
   const { colors: themeColors, resolvedScheme } = useTheme();
-  const palette = useMemo(() => getSettingsPalette(resolvedScheme), [resolvedScheme]);
-  const styles = useMemo(() => createSettingsScreenStyles(themeColors, palette), [themeColors, palette]);
+  const styles = useMemo(() => createSettingsScreenStyles(themeColors), [themeColors]);
   const insets = useSafeAreaInsets();
   const { user, logout } = useAuth();
   const navigation =
@@ -76,6 +79,24 @@ export function SettingsScreen() {
     () => getTelegramSettingsConnectionMeta(telegramAuthStatus),
     [telegramAuthStatus],
   );
+  // «В сети» uses the brand online colors; other states keep their own tints (lightened on dark surfaces).
+  const telegramBadge = useMemo(() => {
+    if (telegramAuthStatus === 'ready') {
+      const online = BRAND.online[resolvedScheme];
+      return { label: telegramConnectionMeta.badge, bg: online.bg, text: online.text };
+    }
+    let text = telegramConnectionMeta.badgeText;
+    if (resolvedScheme === 'dark') {
+      // на тёмном фоне тёмный текст бейджа почти не виден — осветляем
+      const lighter: Record<string, string> = {
+        '#B45309': '#FBBF24',
+        '#2563EB': '#7FB2FF',
+        '#C62828': '#FF8A8F',
+      };
+      text = lighter[text] ?? text;
+    }
+    return { label: telegramConnectionMeta.badge, bg: telegramConnectionMeta.badgeBg, text };
+  }, [resolvedScheme, telegramAuthStatus, telegramConnectionMeta]);
 
   const openTelegram = useCallback(() => {
     if (telegramAuthStatus !== 'ready') {
@@ -130,20 +151,20 @@ export function SettingsScreen() {
           onPress={() => navigation.navigate('EditProfile')}
           style={({ pressed }) => ({
             marginRight: 4,
-            paddingHorizontal: 12,
-            paddingVertical: 6,
-            borderRadius: 14,
-            backgroundColor: palette.card,
+            paddingHorizontal: 14,
+            paddingVertical: 7,
+            borderRadius: 17,
+            backgroundColor: themeColors.inputBackgroundSolid,
             opacity: pressed ? 0.75 : 1,
           })}
         >
-          <Text style={{ fontSize: 15, fontWeight: '600', color: palette.title }}>
+          <Text style={{ fontSize: 15, fontWeight: '700', color: themeColors.textPrimary }}>
             Изм.
           </Text>
         </Pressable>
       ),
     });
-  }, [navigation, palette.card, palette.title]);
+  }, [navigation, themeColors.inputBackgroundSolid, themeColors.textPrimary]);
 
   const syncAuthStore = useCallback((apiUser: Parameters<typeof apiUserToUserRow>[0]) => {
     const token = authStore.getState().accessToken;
@@ -195,82 +216,19 @@ export function SettingsScreen() {
     Alert.alert('Скоро', `${title}: раздел будет подключен позже.`);
   }, []);
 
-  const telegramBadgeColors = useMemo(() => {
-    if (resolvedScheme !== 'dark') {
-      return { bg: telegramConnectionMeta.badgeBg, text: telegramConnectionMeta.badgeText };
-    }
-    // на тёмном фоне тёмно-зелёный/синий текст бейджа почти не виден — осветляем
-    const lighter: Record<string, string> = {
-      '#2E7D4A': '#5FD38A',
-      '#B45309': '#FBBF24',
-      '#2563EB': '#7FB2FF',
-      '#C62828': '#FF8A8F',
-    };
-    return {
-      bg: telegramConnectionMeta.badgeBg,
-      text: lighter[telegramConnectionMeta.badgeText] ?? telegramConnectionMeta.badgeText,
-    };
-  }, [resolvedScheme, telegramConnectionMeta]);
+  const appVersion = Constants.expoConfig?.version ?? '';
+  const isDark = resolvedScheme === 'dark';
+  const badgeBg = isDark ? '#262638' : '#6D3FE0';
+  const badgeIcon = isDark ? '#C4B5FD' : '#FFFFFF';
+  const danger = BRAND.danger[resolvedScheme];
 
   if (loading) {
     return (
       <View style={styles.center}>
-        <ActivityIndicator size="large" color={palette.link} />
+        <ActivityIndicator size="large" color={themeColors.accent} />
       </View>
     );
   }
-
-  const renderRow = (row: {
-    key: string;
-    icon: IconName;
-    title: string;
-    subtitle?: string;
-    onPress: () => void;
-    soon?: boolean;
-    last?: boolean;
-    badge?: { label: string; bg: string; text: string };
-    testID?: string;
-  }) => (
-    <Pressable
-      key={row.key}
-      testID={row.testID}
-      onPress={row.onPress}
-      style={({ pressed }) => [
-        styles.row,
-        !row.last && styles.rowDivider,
-        row.soon && styles.rowSoon,
-        pressed && styles.rowPressed,
-      ]}
-    >
-      <View style={styles.tile}>
-        <MaterialCommunityIcons name={row.icon} size={20} color={palette.tileIcon} />
-      </View>
-      <View style={styles.rowText}>
-        <Text style={styles.rowTitle} numberOfLines={2}>
-          {row.title}
-        </Text>
-        {row.subtitle ? (
-          <Text style={styles.rowSubtitle} numberOfLines={2}>
-            {row.subtitle}
-          </Text>
-        ) : null}
-      </View>
-      {row.badge ? (
-        <View style={[styles.statusBadge, { backgroundColor: row.badge.bg }]}>
-          <Text style={[styles.statusBadgeText, { color: row.badge.text }]}>{row.badge.label}</Text>
-        </View>
-      ) : null}
-      {row.soon ? (
-        <Text style={styles.soonLabel}>Скоро</Text>
-      ) : (
-        <View style={styles.chevronWrap}>
-          <MaterialCommunityIcons name="chevron-right" size={20} color={palette.chevron} />
-        </View>
-      )}
-    </Pressable>
-  );
-
-  const soon = (title: string) => () => showComingSoon(title);
 
   return (
     <>
@@ -288,183 +246,171 @@ export function SettingsScreen() {
             </View>
           )}
 
-          <View style={styles.heroCard}>
-            <Pressable
-              style={styles.heroAvatarWrap}
-              onPress={() => navigation.navigate('MyProfile')}
-              testID="settings-hero-avatar"
-            >
-              {avatarUrl ? (
-                <Image
-                  source={{ uri: avatarUrl }}
-                  style={styles.heroAvatar}
-                  contentFit="cover"
-                  cachePolicy="disk"
-                />
-              ) : (
-                <LinearGradient
-                  colors={[palette.gradientFrom, palette.gradientTo]}
-                  start={{ x: 0, y: 0 }}
-                  end={{ x: 1, y: 1 }}
-                  style={styles.heroAvatar}
-                >
-                  {initial ? (
-                    <Text style={styles.heroAvatarInitial}>{initial}</Text>
-                  ) : (
-                    <MaterialCommunityIcons name="account-outline" size={42} color="#FFFFFF" />
-                  )}
-                </LinearGradient>
-              )}
-              {uploadingAvatar && (
-                <View style={styles.heroAvatarOverlay}>
-                  <ActivityIndicator color="#FFFFFF" />
-                </View>
-              )}
+          <View style={styles.account}>
+            <View style={styles.avatarWrap}>
               <Pressable
-                style={styles.heroCameraBadge}
+                onPress={() => navigation.navigate('MyProfile')}
+                testID="settings-hero-avatar"
+              >
+                {avatarUrl ? (
+                  <Image
+                    source={{ uri: avatarUrl }}
+                    style={styles.avatar}
+                    contentFit="cover"
+                    cachePolicy="disk"
+                  />
+                ) : (
+                  <LinearGradient
+                    colors={[BRAND.gradient[0], BRAND.gradient[1]]}
+                    start={BRAND_GRADIENT_START}
+                    end={BRAND_GRADIENT_END}
+                    style={styles.avatarPlaceholder}
+                  >
+                    {initial ? (
+                      <Text style={styles.avatarPlaceholderText}>{initial}</Text>
+                    ) : (
+                      <CapiIcon name="user" size={38} color="#FFFFFF" strokeWidth={1.6} />
+                    )}
+                  </LinearGradient>
+                )}
+                {uploadingAvatar && (
+                  <View style={styles.avatarOverlay}>
+                    <ActivityIndicator color="#FFFFFF" />
+                  </View>
+                )}
+              </Pressable>
+              <Pressable
+                accessibilityLabel="Изменить фотографию"
                 onPress={uploadingAvatar ? undefined : handleAvatarTap}
                 disabled={uploadingAvatar}
                 hitSlop={8}
                 testID="settings-hero-camera"
+                style={[styles.cameraBadge, { backgroundColor: badgeBg }]}
               >
-                <MaterialCommunityIcons name="camera" size={13} color="#FFFFFF" />
+                <CapiIcon name="camera" size={13} color={badgeIcon} strokeWidth={2} />
               </Pressable>
-            </Pressable>
+            </View>
             <Pressable onPress={() => navigation.navigate('MyProfile')}>
-              <Text style={styles.heroTitle}>{profileTitle}</Text>
-              <Text style={styles.heroMeta} numberOfLines={2}>
+              <Text style={styles.name}>{profileTitle}</Text>
+              <Text style={styles.meta} numberOfLines={2}>
                 {phoneLine && handleLine
                   ? `${phoneLine} · ${handleLine}`
                   : phoneLine || handleLine || ' '}
               </Text>
             </Pressable>
             <Pressable
-              style={({ pressed }) => [styles.heroChangePhoto, pressed && { opacity: 0.7 }, uploadingAvatar && { opacity: 0.5 }]}
               onPress={uploadingAvatar ? undefined : handleAvatarTap}
               disabled={uploadingAvatar}
+              style={({ pressed }) => [
+                styles.changePhotoLink,
+                (pressed || uploadingAvatar) && { opacity: 0.6 },
+              ]}
             >
-              <Text style={styles.heroChangePhotoText}>Изменить фотографию</Text>
+              <Text style={styles.changePhotoText}>Изменить фотографию</Text>
             </Pressable>
           </View>
 
-          <Text style={styles.sectionTitle}>Подключения</Text>
-          <View style={styles.card}>
-            {renderRow({
-              key: 'telegram',
-              icon: 'send-outline',
-              title: 'Telegram',
-              subtitle: telegramConnectionMeta.subtitle,
-              onPress: openTelegram,
-              badge: {
-                label: telegramConnectionMeta.badge,
-                bg: telegramBadgeColors.bg,
-                text: telegramBadgeColors.text,
-              },
-            })}
-            {renderRow({
-              key: 'services',
-              icon: 'view-grid-outline',
-              title: 'Сервисы',
-              subtitle: 'Мини-приложения и боты',
-              onPress: () => navigation.navigate('Services'),
-              last: true,
-            })}
+          <Text style={styles.groupLabel}>Подключения</Text>
+          <View style={styles.group}>
+            <CapiSettingsRow
+              first
+              icon="send"
+              title="Telegram"
+              subtitle={telegramConnectionMeta.subtitle}
+              badge={telegramBadge}
+              onPress={openTelegram}
+            />
+            <CapiSettingsRow
+              icon="grid"
+              title="Сервисы"
+              subtitle="Мини-приложения и боты"
+              onPress={() => navigation.navigate('Services')}
+            />
           </View>
 
-          <Text style={styles.sectionTitle}>Приложение</Text>
-          <View style={styles.card}>
-            {renderRow({
-              key: 'appearance',
-              icon: 'palette-outline',
-              title: 'Оформление',
-              subtitle: 'Тема приложения',
-              onPress: () => navigation.navigate('Appearance'),
-            })}
-            {renderRow({
-              key: 'chats',
-              icon: 'message-outline',
-              title: 'Настройки чатов',
-              onPress: () => navigation.navigate('ChatSettings'),
-            })}
-            {renderRow({
-              key: 'notifications',
-              icon: 'bell-outline',
-              title: 'Уведомления и звуки',
-              onPress: soon('Уведомления и звуки'),
-              soon: true,
-            })}
-            {renderRow({
-              key: 'language',
-              icon: 'earth',
-              title: 'Язык',
-              onPress: soon('Язык'),
-              soon: true,
-            })}
-            {renderRow({
-              key: 'data',
-              icon: 'chart-pie',
-              title: 'Данные и память',
-              onPress: soon('Данные и память'),
-              soon: true,
-              last: true,
-            })}
+          <Text style={styles.groupLabel}>Приложение</Text>
+          <View style={styles.group}>
+            <CapiSettingsRow
+              first
+              icon="palette"
+              title="Оформление"
+              subtitle="Тема приложения"
+              onPress={() => navigation.navigate('Appearance')}
+            />
+            <CapiSettingsRow
+              icon="messageSquare"
+              title="Настройки чатов"
+              onPress={() => navigation.navigate('ChatSettings')}
+            />
+            <CapiSettingsRow
+              soon
+              icon="bell"
+              title="Уведомления и звуки"
+              onPress={() => showComingSoon('Уведомления и звуки')}
+            />
+            <CapiSettingsRow
+              soon
+              icon="globe"
+              title="Язык"
+              onPress={() => showComingSoon('Язык')}
+            />
+            <CapiSettingsRow
+              soon
+              icon="chartPie"
+              title="Данные и память"
+              onPress={() => showComingSoon('Данные и память')}
+            />
           </View>
 
-          <Text style={styles.sectionTitle}>Безопасность</Text>
-          <View style={styles.card}>
-            {renderRow({
-              key: 'privacy',
-              icon: 'shield-outline',
-              title: 'Конфиденциальность',
-              onPress: soon('Конфиденциальность'),
-              soon: true,
-            })}
-            {renderRow({
-              key: 'security',
-              icon: 'lock-outline',
-              title: 'Пароль и безопасность',
-              onPress: soon('Пароль и безопасность'),
-              soon: true,
-            })}
-            {renderRow({
-              key: 'devices',
-              icon: 'laptop',
-              title: 'Устройства',
-              onPress: soon('Устройства'),
-              soon: true,
-              last: true,
-            })}
+          <Text style={styles.groupLabel}>Безопасность</Text>
+          <View style={styles.group}>
+            <CapiSettingsRow
+              first
+              soon
+              icon="shield"
+              title="Конфиденциальность"
+              onPress={() => showComingSoon('Конфиденциальность')}
+            />
+            <CapiSettingsRow
+              soon
+              icon="lock"
+              title="Пароль и безопасность"
+              onPress={() => showComingSoon('Пароль и безопасность')}
+            />
+            <CapiSettingsRow
+              soon
+              icon="laptop"
+              title="Устройства"
+              onPress={() => showComingSoon('Устройства')}
+            />
           </View>
 
-          <Text style={styles.sectionTitle}>Поддержка</Text>
-          <View style={styles.card}>
-            {renderRow({
-              key: 'bug',
-              icon: 'bug-outline',
-              title: 'Сообщить о баге',
-              subtitle: 'Список ваших сообщений и новая заявка',
-              onPress: () => navigation.navigate('FeedbackList', { kind: 'bug' }),
-            })}
-            {renderRow({
-              key: 'suggestion',
-              icon: 'lightbulb-outline',
-              title: 'Предложения',
-              subtitle: 'Идеи по улучшению приложения',
-              onPress: () => navigation.navigate('FeedbackList', { kind: 'suggestion' }),
-              last: true,
-            })}
+          <Text style={styles.groupLabel}>Поддержка</Text>
+          <View style={styles.group}>
+            <CapiSettingsRow
+              first
+              icon="bug"
+              title="Сообщить о баге"
+              subtitle="Список ваших сообщений и новая заявка"
+              onPress={() => navigation.navigate('FeedbackList', { kind: 'bug' })}
+            />
+            <CapiSettingsRow
+              icon="lightbulb"
+              title="Предложения"
+              subtitle="Идеи по улучшению приложения"
+              onPress={() => navigation.navigate('FeedbackList', { kind: 'suggestion' })}
+            />
           </View>
 
-          <View style={[styles.card, styles.logoutCard]}>
-            <Pressable
-              testID="settings-logout"
-              onPress={logout}
-              style={({ pressed }) => [styles.row, styles.logoutRow, pressed && styles.rowPressed]}
-            >
-              <MaterialCommunityIcons name="logout" size={20} color={palette.danger} style={{ marginRight: 10 }} />
-              <Text style={[styles.rowTitle, styles.rowTitleDanger]}>Выйти из аккаунта</Text>
-            </Pressable>
-          </View>
+          <Pressable
+            accessibilityRole="button"
+            onPress={logout}
+            style={({ pressed }) => [styles.logoutRow, pressed && { opacity: 0.7 }]}
+          >
+            <CapiIcon name="logOut" size={20} color={danger} />
+            <Text style={[styles.logoutText, { color: danger }]}>Выйти из аккаунта</Text>
+          </Pressable>
+          <Text style={styles.version}>{appVersion ? `Capi · ${appVersion}` : 'Capi'}</Text>
         </ScrollView>
       </KeyboardAvoidingView>
       <AvatarPickSheet
