@@ -18,8 +18,10 @@ import Reanimated, {
   useSharedValue,
   withSpring,
 } from 'react-native-reanimated';
+import { LinearGradient } from 'expo-linear-gradient';
 import { ProfileActionIcon, type ProfileActionIconName } from './ProfileActionIcon';
 import { useTheme } from '../contexts/ThemeContext';
+import { BRAND, BRAND_GRADIENT_END, BRAND_GRADIENT_START } from '../theme/brand';
 import {
   createChatProfileHeroStyles,
   type ChatProfileHeroStyleSet,
@@ -64,7 +66,8 @@ type QuickActionButtonProps = {
   buttonRef?: React.RefObject<View | null>;
   waveOnPress?: boolean;
   styles: ChatProfileHeroStyleSet;
-  accentColor: string;
+  /** @deprecated Capi tiles use the brand gradient; kept so call sites stay unchanged. */
+  accentColor?: string;
 };
 
 const HERO_COLLAPSED_SIZE = 108;
@@ -73,14 +76,13 @@ const QuickActionButton = React.memo(function QuickActionButton({
   icon,
   label,
   active = false,
-  iconOnlyActive = false,
   onPress,
   buttonRef,
   waveOnPress = false,
   styles,
-  accentColor,
 }: QuickActionButtonProps) {
-  const filledAccent = Boolean(active && !iconOnlyActive);
+  const { resolvedScheme } = useTheme();
+  const isDark = resolvedScheme === 'dark';
   const waveAnimation = React.useRef(new RNAnimated.Value(0)).current;
   const iconScale = React.useRef(new RNAnimated.Value(1)).current;
 
@@ -137,32 +139,45 @@ const QuickActionButton = React.memo(function QuickActionButton({
     [waveAnimation]
   );
 
+  const tileContent = (
+    <>
+      {waveOnPress ? (
+        <RNAnimated.View pointerEvents="none" style={[styles.quickActionWave, waveStyle]} />
+      ) : null}
+      <RNAnimated.View style={{ transform: [{ scale: iconScale }] }}>
+        <ProfileActionIcon
+          name={icon}
+          size={24}
+          color="#FFFFFF"
+          gradient={isDark}
+          active={active}
+        />
+      </RNAnimated.View>
+    </>
+  );
+
   return (
     <Pressable
       ref={buttonRef}
       onPress={handlePress}
-      style={({ pressed }) => [
-        styles.quickAction,
-        filledAccent && styles.quickActionActive,
-        pressed && styles.quickActionPressed,
-      ]}
+      accessibilityRole="button"
+      accessibilityLabel={label}
+      style={({ pressed }) => [styles.quickAction, pressed && styles.quickActionPressed]}
     >
-      {waveOnPress ? (
-        <RNAnimated.View pointerEvents="none" style={[styles.quickActionWave, waveStyle]} />
-      ) : null}
-      <View style={styles.quickActionIconSlot}>
-        <RNAnimated.View style={{ transform: [{ scale: iconScale }] }}>
-          <ProfileActionIcon
-            name={icon}
-            size={20.5}
-            color={filledAccent ? '#FFFFFF' : accentColor}
-            active={active}
-          />
-        </RNAnimated.View>
-      </View>
-      <Text style={[styles.quickActionLabel, filledAccent && styles.quickActionLabelActive]}>
-        {label}
-      </Text>
+      {/* Capi: light theme = brand gradient tile with a white glyph; dark theme = dark tile, violet border, gradient glyph. */}
+      {isDark ? (
+        <View style={[styles.quickActionTile, styles.quickActionTileDark]}>{tileContent}</View>
+      ) : (
+        <LinearGradient
+          colors={[BRAND.gradient[0], BRAND.gradient[1]]}
+          start={BRAND_GRADIENT_START}
+          end={BRAND_GRADIENT_END}
+          style={[styles.quickActionTile, styles.quickActionTileLight]}
+        >
+          {tileContent}
+        </LinearGradient>
+      )}
+      <Text style={styles.quickActionLabel}>{label}</Text>
     </Pressable>
   );
 });

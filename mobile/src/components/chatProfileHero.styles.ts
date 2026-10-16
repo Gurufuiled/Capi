@@ -1,6 +1,7 @@
 import { StyleSheet } from 'react-native';
 
 import type { ThemeColors } from '../theme/palettes';
+import { BRAND } from '../theme/brand';
 import { withAlpha } from '../theme/stylePrimitives';
 
 const HERO_COLLAPSED_SIZE = 108;
@@ -110,51 +111,48 @@ export function createChatProfileHeroStyles(c: ThemeColors) {
       marginTop: 20,
       width: '100%',
       flexDirection: 'row',
+      alignItems: 'flex-start',
       justifyContent: 'space-between',
       gap: 8,
     },
+    /** Capi: square tile with the label underneath (tile styles below). */
     quickAction: {
       flex: 1,
-      height: 74,
       alignItems: 'center',
-      justifyContent: 'center',
-      borderRadius: 20,
-      overflow: 'hidden',
-      backgroundColor: c.inputBackgroundSolid,
-      borderWidth: StyleSheet.hairlineWidth,
-      borderColor: c.separator,
-      shadowColor: '#89A8D8',
-      shadowOpacity: 0.08,
-      shadowRadius: 10,
-      shadowOffset: { width: 0, height: 4 },
-      elevation: 1,
+      gap: 7,
     },
     quickActionPressed: {
       opacity: 0.86,
     },
-    quickActionActive: {
-      backgroundColor: c.accent,
-      borderColor: c.accent,
-    },
-    quickActionIconSlot: {
-      height: 28,
+    quickActionTile: {
+      width: '100%',
+      aspectRatio: 1,
+      borderRadius: 18,
+      overflow: 'hidden',
       alignItems: 'center',
       justifyContent: 'center',
     },
-    quickActionLabel: {
-      marginTop: 7,
-      fontSize: 12.5,
-      fontWeight: '600',
-      color: c.accent,
-      textAlign: 'center',
+    quickActionTileLight: {
+      shadowColor: BRAND.lightPlateShadow,
+      shadowOpacity: 0.3,
+      shadowRadius: 7,
+      shadowOffset: { width: 0, height: 6 },
+      elevation: 3,
     },
-    quickActionLabelActive: {
-      color: '#FFFFFF',
+    quickActionTileDark: {
+      backgroundColor: BRAND.darkPlate,
+      borderWidth: 1,
+      borderColor: BRAND.darkPlateBorder,
+    },
+    quickActionLabel: {
+      fontSize: 12,
+      fontWeight: '500',
+      color: c.textPrimary,
+      textAlign: 'center',
     },
     quickActionWave: {
       ...StyleSheet.absoluteFillObject,
-      borderRadius: 20,
-      backgroundColor: withAlpha(c.accent, 0.18),
+      backgroundColor: withAlpha('#FFFFFF', 0.18),
     },
     loaderRow: {
       marginTop: 16,

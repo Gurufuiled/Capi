@@ -1,6 +1,5 @@
 import React, { useMemo } from 'react';
 import Feather from '@expo/vector-icons/Feather';
-import type { ImageSourcePropType } from 'react-native';
 import {
   Animated,
   Dimensions,
@@ -10,8 +9,8 @@ import {
   Text,
   View,
 } from 'react-native';
-import { Image } from 'expo-image';
 import { useTheme } from '../contexts/ThemeContext';
+import { CapiIcon, type CapiIconName } from './capi/CapiIcon';
 import type { ResolvedColorScheme, ThemeColors } from '../theme/palettes';
 import { withAlpha } from '../theme/stylePrimitives';
 
@@ -28,10 +27,28 @@ export type AnchoredPopoverMenuItem = {
   key: string;
   label: string;
   icon?: React.ComponentProps<typeof Feather>['name'] | null;
-  /** When set, shown instead of the Feather icon (e.g. bundled PNG). */
-  iconImage?: ImageSourcePropType;
+  /** Capi line icon; takes precedence over `icon`. */
+  capiIcon?: CapiIconName;
   color?: string;
+  /** Destructive action: red label and icon, separated from the neutral group. */
+  danger?: boolean;
 };
+
+/** Feather names used by the screens, drawn with the Capi set instead. */
+const FEATHER_TO_CAPI: Partial<Record<string, CapiIconName>> = {
+  'trash-2': 'trash',
+  slash: 'ban',
+  pin: 'pin',
+  'message-circle': 'messageCircle',
+  'log-out': 'logOut',
+};
+
+const MENU_DANGER = '#E5484D';
+const LEGACY_DANGER = '#D04857';
+
+function isDangerItem(item: AnchoredPopoverMenuItem) {
+  return item.danger ?? item.color?.toUpperCase() === LEGACY_DANGER;
+}
 
 type AnchoredPopoverMenuProps = {
   menu: AnchoredMenuState;
@@ -50,7 +67,7 @@ type AnchoredPopoverMenuProps = {
 };
 
 const MENU_EDGE_GAP = 14;
-const DEFAULT_MENU_WIDTH = 236;
+const DEFAULT_MENU_WIDTH = 252;
 const DEFAULT_OFFSET_Y = 10;
 
 function clamp(value: number, min: number, max: number) {
@@ -101,7 +118,8 @@ function createAnchoredMenuStyles(c: ThemeColors, scheme: ResolvedColorScheme) {
     },
     card: {
       overflow: 'hidden',
-      borderRadius: 24,
+      padding: 6,
+      borderRadius: 22,
       backgroundColor: c.inputBackgroundSolid,
       borderWidth: StyleSheet.hairlineWidth,
       borderColor: c.separator,
@@ -121,23 +139,36 @@ function createAnchoredMenuStyles(c: ThemeColors, scheme: ResolvedColorScheme) {
     },
     item: {
       minHeight: 52,
-      paddingHorizontal: 16,
+      paddingHorizontal: 10,
+      borderRadius: 16,
       flexDirection: 'row',
       alignItems: 'center',
-      justifyContent: 'space-between',
       gap: 12,
     },
     itemPressed: {
       backgroundColor: c.rowPressed,
     },
-    itemBorder: {
-      borderBottomWidth: StyleSheet.hairlineWidth,
-      borderBottomColor: c.separator,
+    groupDivider: {
+      height: StyleSheet.hairlineWidth,
+      marginVertical: 3,
+      marginHorizontal: 12,
+      backgroundColor: c.separator,
+    },
+    iconWrap: {
+      width: 34,
+      height: 34,
+      borderRadius: 11,
+      alignItems: 'center',
+      justifyContent: 'center',
+      backgroundColor: withAlpha(c.accent, scheme === 'dark' ? 0.18 : 0.12),
+    },
+    iconWrapDanger: {
+      backgroundColor: withAlpha(MENU_DANGER, scheme === 'dark' ? 0.2 : 0.12),
     },
     itemLabel: {
       flex: 1,
-      fontSize: 16,
-      fontWeight: '500',
+      fontSize: 15,
+      fontWeight: '700',
     },
   });
 }
@@ -261,30 +292,40 @@ function AnchoredPopoverMenuContent({
           {customBody != null ? (
             customBody
           ) : (
-            items.map((item, index) => (
-              <Pressable
-                key={item.key}
-                onPress={() => onSelect(item.key)}
-                style={({ pressed }) => [
-                  styles.item,
-                  index < items.length - 1 && styles.itemBorder,
-                  pressed && styles.itemPressed,
-                ]}
-              >
-                <Text style={[styles.itemLabel, { color: item.color ?? colors.textPrimary }]}>
-                  {item.label}
-                </Text>
-                {item.iconImage ? (
-                  <Image
-                    source={item.iconImage}
-                    style={{ width: 20, height: 20, tintColor: item.color ?? colors.textPrimary }}
-                    contentFit="contain"
-                  />
-                ) : item.icon ? (
-                  <Feather name={item.icon as never} size={18} color={item.color ?? colors.textPrimary} />
-                ) : null}
-              </Pressable>
-            ))
+            items.map((item, index) => {
+              const danger = isDangerItem(item);
+              const tint = danger ? MENU_DANGER : colors.accent;
+              const capiIcon =
+                item.capiIcon ?? (item.icon ? FEATHER_TO_CAPI[item.icon as string] : undefined);
+              const showDivider = danger && index > 0 && !isDangerItem(items[index - 1]);
+              return (
+                <React.Fragment key={item.key}>
+                  {showDivider ? <View style={styles.groupDivider} /> : null}
+                  <Pressable
+                    onPress={() => onSelect(item.key)}
+                    style={({ pressed }) => [styles.item, pressed && styles.itemPressed]}
+                  >
+                    {capiIcon || item.icon ? (
+                      <View style={[styles.iconWrap, danger && styles.iconWrapDanger]}>
+                        {capiIcon ? (
+                          <CapiIcon name={capiIcon} size={20} color={tint} />
+                        ) : (
+                          <Feather name={item.icon as never} size={18} color={tint} />
+                        )}
+                      </View>
+                    ) : null}
+                    <Text
+                      style={[
+                        styles.itemLabel,
+                        { color: danger ? MENU_DANGER : item.color ?? colors.textPrimary },
+                      ]}
+                    >
+                      {item.label}
+                    </Text>
+                  </Pressable>
+                </React.Fragment>
+              );
+            })
           )}
         </View>
       </Animated.View>

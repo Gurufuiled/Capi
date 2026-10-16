@@ -7,7 +7,6 @@ import {
 } from "react-native";
 import { Image } from "expo-image";
 import { useShallow } from "zustand/react/shallow";
-import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import { resolveAvatarUrl } from "../config";
 import { useTheme } from "../contexts/ThemeContext";
 import { messageStore } from "../stores/messageStore";
@@ -15,7 +14,9 @@ import type { Chat } from "../stores/types";
 import { createChatListRowStyles } from "./chatListRow.styles";
 import { DialogListPreview } from "./DialogListPreview";
 import { MessageStatusIcon } from "./MessageTimeStatus";
-import { getChatListTitle } from "../presentation";
+import { CHAT_LIST_AVATAR_SIZE, getChatListTitle } from "../presentation";
+import { CapiGradientAvatar } from "./capi/CapiPlate";
+import { CapiIcon } from "./capi/CapiIcon";
 import { buildChatusDialogPreviewForChat } from "../utils/chatusDialogPreview";
 import { formatMessageTime } from "../utils/formatMessageTime";
 
@@ -134,15 +135,11 @@ export const ChatListRow = React.memo(
             onError={() => setFailedAvatarUrl(avatarUrl)}
           />
         ) : chat.chat_type === "channel" ? (
-          <View
-            style={[styles.avatarPlaceholder, styles.channelAvatarPlaceholder]}
-          >
-            <MaterialCommunityIcons
-              name="bullhorn-outline"
-              size={24}
-              color="#FFFFFF"
-            />
-          </View>
+          <CapiGradientAvatar
+            icon="megaphone"
+            size={CHAT_LIST_AVATAR_SIZE}
+            iconSize={Math.round(CHAT_LIST_AVATAR_SIZE * 0.46)}
+          />
         ) : (
           <View
             style={[styles.avatarPlaceholder, { backgroundColor: avatarColor }]}
@@ -187,12 +184,14 @@ export const ChatListRow = React.memo(
               style={{ flexDirection: "row", alignItems: "center", gap: 6 }}
             >
               {chat.is_pinned === 1 ? (
-                <MaterialCommunityIcons
-                  name="pin"
-                  size={18}
-                  color={themeColors.iconMuted}
-                  style={{ transform: [{ rotate: "45deg" }] }}
-                />
+                <View style={{ transform: [{ rotate: "45deg" }] }}>
+                  <CapiIcon
+                    name="pin"
+                    size={18}
+                    color={themeColors.accent}
+                    strokeWidth={2}
+                  />
+                </View>
               ) : null}
               {showUnreadBadge ? (
                 <View

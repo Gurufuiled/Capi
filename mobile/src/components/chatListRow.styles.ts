@@ -111,7 +111,7 @@ export function createChatListRowStyles(c: ThemeColors) {
     unreadBadgeText: {
       fontSize: 11,
       fontWeight: '800',
-      color: '#FFFFFF',
+      color: c.onAccent,
       includeFontPadding: false,
     },
   });

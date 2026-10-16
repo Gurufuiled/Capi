@@ -1,7 +1,7 @@
 import React, { useMemo } from "react";
 import { Pressable, Text, View } from "react-native";
 import { Image } from "expo-image";
-import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
+import { CapiIcon } from "./capi/CapiIcon";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import type { ChatsStackParamList } from "../navigation/types";
 import type { TelegramDialogRow } from "../stores/telegramAccountStore";
@@ -147,12 +147,14 @@ export const TelegramDialogListRow = React.memo(
                 style={{ flexDirection: "row", alignItems: "center", gap: 6 }}
               >
                 {item.isPinned ? (
-                  <MaterialCommunityIcons
-                    name="pin"
-                    size={18}
-                    color={colors.iconMuted}
-                    style={{ transform: [{ rotate: "45deg" }] }}
-                  />
+                  <View style={{ transform: [{ rotate: "45deg" }] }}>
+                    <CapiIcon
+                      name="pin"
+                      size={18}
+                      color={colors.accent}
+                      strokeWidth={2}
+                    />
+                  </View>
                 ) : null}
                 {item.unreadCount > 0 ? (
                   <View

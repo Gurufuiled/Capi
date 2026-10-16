@@ -21,7 +21,11 @@ export const CHAT_LIST_SEPARATOR_INSET =
   CHAT_LIST_HORIZONTAL_PADDING + CHAT_LIST_AVATAR_SIZE + CHAT_LIST_AVATAR_GAP;
 
 /** Long-press overflow menu width (anchored modal, not Android PopupWindow). */
-export const CHAT_LIST_MENU_WIDTH = 236;
+export const CHAT_LIST_MENU_WIDTH = 240;
+/** Высота панели действий (круг 42 + подпись + отступы). */
+export const CHAT_LIST_MENU_HEIGHT = 88;
+/** Запас снизу под навигацию и системную полосу. */
+export const CHAT_LIST_MENU_BOTTOM_RESERVE = 110;
 
 /** Chat stack header: avatar in headerRight (Telegram ~34dp). */
 export const CHAT_HEADER_AVATAR_SIZE = 34;
@@ -53,7 +57,12 @@ export function computeChatListMenuPosition(
     sideGap,
     Math.min(pageX - CHAT_LIST_MENU_WIDTH / 2, screenWidth - CHAT_LIST_MENU_WIDTH - sideGap),
   );
-  const top = Math.max(topGap, pageY - 20);
+  // Панель ставим под нажатой строкой (строка ~76 dp, палец где-то внутри), чтобы не закрывать чат, к которому относится действие.
+  const screenHeight = Dimensions.get('window').height;
+  const top = Math.max(
+    topGap,
+    Math.min(pageY + 40, screenHeight - CHAT_LIST_MENU_HEIGHT - CHAT_LIST_MENU_BOTTOM_RESERVE),
+  );
   return { left, top };
 }
 

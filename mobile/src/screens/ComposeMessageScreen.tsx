@@ -10,7 +10,6 @@ import {
 } from 'react-native';
 import { Image } from 'expo-image';
 import Feather from '@expo/vector-icons/Feather';
-import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -37,6 +36,8 @@ import { useTheme } from '../contexts/ThemeContext';
 import { createComposeMessageStyles } from './composeMessage.styles';
 import { TelegramGlyph } from '../icons/telegram';
 import { TELEGRAM_PROFILE_GLYPHS } from '../icons/telegram/profilePaths';
+import { CapiIcon } from '../components/capi/CapiIcon';
+import { CapiPlate } from '../components/capi/CapiPlate';
 
 const SEARCH_DEBOUNCE_MS = 300;
 
@@ -265,7 +266,6 @@ export function ComposeMessageScreen() {
   );
 
   const searchG = TELEGRAM_PROFILE_GLYPHS.search;
-  const groupG = TELEGRAM_PROFILE_GLYPHS.groupAddMember;
 
   const renderRow = useCallback(
     ({ item }: { item: Row }) => {
@@ -346,35 +346,34 @@ export function ComposeMessageScreen() {
   const header = useMemo(
     () => (
       <View>
-        <Pressable
-          style={styles.quickAction}
-          onPress={() => {
-            navigation.navigate('CreateGroupChat');
-          }}
-        >
-          <View style={[styles.quickIconWrap, { backgroundColor: `${colors.accent}22` }]}>
-            <TelegramGlyph d={groupG.d} fillRule={groupG.fillRule} color={colors.accent} size={22} />
-          </View>
-          <Text style={[styles.quickLabel, { color: colors.accent }]}>Создать группу</Text>
-        </Pressable>
-        <Pressable
-          style={styles.quickAction}
-          onPress={() => navigation.navigate('CreateContact')}
-        >
-          <View style={[styles.quickIconWrap, { backgroundColor: `${colors.accent}22` }]}>
-            <MaterialCommunityIcons name="account-plus-outline" size={24} color={colors.accent} />
-          </View>
-          <Text style={[styles.quickLabel, { color: colors.accent }]}>Создать контакт</Text>
-        </Pressable>
-        <Pressable
-          style={styles.quickAction}
-          onPress={() => navigation.navigate('CreateChannel')}
-        >
-          <View style={[styles.quickIconWrap, { backgroundColor: `${colors.accent}22` }]}>
-            <MaterialCommunityIcons name="bullhorn-outline" size={22} color={colors.accent} />
-          </View>
-          <Text style={[styles.quickLabel, { color: colors.accent }]}>Создать канал</Text>
-        </Pressable>
+        <View style={styles.quickCard}>
+          <Pressable
+            style={styles.quickAction}
+            onPress={() => {
+              navigation.navigate('CreateGroupChat');
+            }}
+          >
+            <CapiPlate icon="users" />
+            <Text style={styles.quickLabel}>Создать группу</Text>
+            <CapiIcon name="chevronRight" size={20} color={colors.iconMuted} />
+          </Pressable>
+          <Pressable
+            style={[styles.quickAction, styles.quickActionDivider]}
+            onPress={() => navigation.navigate('CreateContact')}
+          >
+            <CapiPlate icon="userPlus" />
+            <Text style={styles.quickLabel}>Создать контакт</Text>
+            <CapiIcon name="chevronRight" size={20} color={colors.iconMuted} />
+          </Pressable>
+          <Pressable
+            style={[styles.quickAction, styles.quickActionDivider]}
+            onPress={() => navigation.navigate('CreateChannel')}
+          >
+            <CapiPlate icon="megaphone" />
+            <Text style={styles.quickLabel}>Создать канал</Text>
+            <CapiIcon name="chevronRight" size={20} color={colors.iconMuted} />
+          </Pressable>
+        </View>
 
         <View style={styles.searchWrap}>
           <View style={styles.searchIconSlot}>
@@ -398,7 +397,7 @@ export function ComposeMessageScreen() {
         </View>
       </View>
     ),
-    [colors, groupG, navigation, query, loadingSearch, searchG, styles]
+    [colors, navigation, query, loadingSearch, searchG, styles]
   );
 
   const renderItemSeparator = useCallback(

@@ -1,5 +1,4 @@
 import React, { useMemo } from 'react';
-import Feather from '@expo/vector-icons/Feather';
 import {
   Modal,
   Pressable,
@@ -8,6 +7,7 @@ import {
 } from 'react-native';
 import type { Chat } from '../stores/types';
 import { useTheme } from '../contexts/ThemeContext';
+import { CapiIcon, type CapiIconName } from './capi/CapiIcon';
 import {
   createChatListActionsMenuStyles,
   type ChatListActionsMenuStyleSet,
@@ -30,37 +30,35 @@ type ChatListActionsMenuProps = {
   onDelete: () => void;
 };
 
+const DANGER = '#E5484D';
+
 function MenuAction({
   label,
   icon,
   danger = false,
   onPress,
   styles,
-  textPrimary,
+  accent,
 }: {
   label: string;
-  icon: React.ComponentProps<typeof Feather>['name'];
+  icon: CapiIconName;
   danger?: boolean;
   onPress: () => void;
   styles: ChatListActionsMenuStyleSet;
-  textPrimary: string;
+  accent: string;
 }) {
   return (
     <Pressable
       onPress={onPress}
-      style={({ pressed }) => [
-        styles.actionRow,
-        pressed && styles.actionRowPressed,
-      ]}
+      style={({ pressed }) => [styles.action, pressed && styles.actionPressed]}
     >
       <View style={[styles.iconWrap, danger && styles.iconWrapDanger]}>
-        <Feather
-          name={icon}
-          size={17}
-          color={danger ? '#E53935' : textPrimary}
-        />
+        <CapiIcon name={icon} size={20} color={danger ? DANGER : accent} />
       </View>
-      <Text style={[styles.actionLabel, danger && styles.actionLabelDanger]}>
+      <Text
+        style={[styles.actionLabel, danger && styles.actionLabelDanger]}
+        numberOfLines={1}
+      >
         {label}
       </Text>
     </Pressable>
@@ -77,15 +75,15 @@ export const ChatListActionsMenu = React.memo(function ChatListActionsMenu({
   onTogglePin,
   onDelete,
 }: ChatListActionsMenuProps) {
-  const { colors: themeColors } = useTheme();
+  const { colors: themeColors, resolvedScheme } = useTheme();
   const styles = useMemo(
-    () => createChatListActionsMenuStyles(themeColors),
-    [themeColors],
+    () => createChatListActionsMenuStyles(themeColors, resolvedScheme),
+    [themeColors, resolvedScheme],
   );
 
   if (!visible || !menuState) return null;
 
-  const muteLabel = isMuted ? 'Включить уведомления' : 'Отключить уведомления';
+  const muteLabel = isMuted ? 'Со звуком' : 'Без звука';
   const pinLabel = isPinned ? 'Открепить' : 'Закрепить';
 
   return (
@@ -108,25 +106,25 @@ export const ChatListActionsMenu = React.memo(function ChatListActionsMenu({
         >
           <MenuAction
             label={pinLabel}
-            icon="bookmark"
+            icon={isPinned ? 'pinOff' : 'pin'}
             onPress={onTogglePin}
             styles={styles}
-            textPrimary={themeColors.textPrimary}
+            accent={themeColors.accent}
           />
           <MenuAction
             label={muteLabel}
-            icon={isMuted ? 'bell' : 'bell-off'}
+            icon={isMuted ? 'bell' : 'bellOff'}
             onPress={onToggleMute}
             styles={styles}
-            textPrimary={themeColors.textPrimary}
+            accent={themeColors.accent}
           />
           <MenuAction
-            label="Удалить чат"
-            icon="trash-2"
+            label="Удалить"
+            icon="trash"
             danger
             onPress={onDelete}
             styles={styles}
-            textPrimary={themeColors.textPrimary}
+            accent={themeColors.accent}
           />
         </View>
       </View>

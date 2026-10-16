@@ -5,7 +5,7 @@ export function createComposeMessageStyles(colors: ThemeColors) {
   return StyleSheet.create({
     root: {
       flex: 1,
-      backgroundColor: colors.header,
+      backgroundColor: colors.chatBackground,
     },
     header: {
       flexDirection: 'row',
@@ -54,19 +54,24 @@ export function createComposeMessageStyles(colors: ThemeColors) {
       color: colors.textPrimary,
       paddingVertical: 0,
     },
+    /** One card with the three create actions (Capi menu A). */
+    quickCard: {
+      marginHorizontal: 16,
+      marginTop: 12,
+      paddingHorizontal: 16,
+      paddingVertical: 4,
+      borderRadius: 22,
+      backgroundColor: colors.inputBackgroundSolid,
+    },
     quickAction: {
       flexDirection: 'row',
       alignItems: 'center',
       paddingVertical: 12,
-      paddingHorizontal: 16,
       gap: 14,
     },
-    quickIconWrap: {
-      width: 40,
-      height: 40,
-      borderRadius: 20,
-      alignItems: 'center',
-      justifyContent: 'center',
+    quickActionDivider: {
+      borderTopWidth: StyleSheet.hairlineWidth,
+      borderTopColor: colors.separator,
     },
     quickLabel: {
       flex: 1,
@@ -81,7 +86,7 @@ export function createComposeMessageStyles(colors: ThemeColors) {
       fontSize: 14,
       fontWeight: '700',
       color: colors.accent,
-      backgroundColor: colors.header,
+      backgroundColor: colors.chatBackground,
     },
     row: {
       flexDirection: 'row',

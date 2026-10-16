@@ -8,9 +8,11 @@ import {
   Pressable,
   RefreshControl,
   Text,
+  useWindowDimensions,
   View,
   type GestureResponderEvent,
 } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useNavigation } from "@react-navigation/native";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import {
@@ -21,8 +23,10 @@ import {
 } from "../components";
 import { TelegramDialogListRow } from "../components/TelegramDialogListRow";
 import { TelegramDialogsLoadingBanner } from "../components/TelegramDialogsLoadingBanner";
+import { TelegramConnectionBanner } from "../components/TelegramConnectionBanner";
 import { resolveAvatarUrl } from "../config";
 import { ChatDao } from "../db/dao/ChatDao";
+import { getMainTabBarTopFromBottom } from "../navigation/mainTabMetrics";
 import type { ChatsStackParamList } from "../navigation/types";
 import { computeChatListMenuPosition, getChatListTitle } from "../presentation";
 import type { ApiUser } from "../services/AuthService";
@@ -154,6 +158,8 @@ const ContactResultRow = React.memo(function ContactResultRow({
 
 export function ChatListScreen() {
   const { colors: themeColors } = useTheme();
+  const insets = useSafeAreaInsets();
+  const { height: windowHeight } = useWindowDimensions();
   const listStyles = React.useMemo(
     () => createChatListStyles(themeColors),
     [themeColors],
@@ -592,6 +598,9 @@ export function ChatListScreen() {
         updateCellsBatchingPeriod={Platform.OS === "android" ? 60 : 45}
         windowSize={Platform.OS === "android" ? 5 : 8}
         keyboardShouldPersistTaps="handled"
+        contentContainerStyle={{
+          paddingBottom: getMainTabBarTopFromBottom(insets, windowHeight) + 16,
+        }}
         refreshControl={
           telegramReady ? (
             <RefreshControl
@@ -626,6 +635,7 @@ export function ChatListScreen() {
         }
       />
       <TelegramDialogsLoadingBanner />
+      <TelegramConnectionBanner onRetry={() => void onRefresh()} />
       <ChatListActionsMenu
         visible={menuState != null}
         menuState={menuState}

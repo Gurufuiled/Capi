@@ -1,59 +1,67 @@
 import { StyleSheet } from 'react-native';
 
 import { CHAT_LIST_MENU_WIDTH } from '../presentation';
-import type { ThemeColors } from '../theme/palettes';
+import type { ResolvedColorScheme, ThemeColors } from '../theme/palettes';
 import { withAlpha } from '../theme/stylePrimitives';
 
-export function createChatListActionsMenuStyles(c: ThemeColors) {
+const DANGER = '#E5484D';
+
+export function createChatListActionsMenuStyles(
+  c: ThemeColors,
+  scheme: ResolvedColorScheme = 'light',
+) {
+  const dark = scheme === 'dark';
   return StyleSheet.create({
     root: {
       flex: 1,
     },
     backdrop: {
       ...StyleSheet.absoluteFillObject,
-      backgroundColor: 'rgba(0, 0, 0, 0.12)',
+      backgroundColor: dark ? 'rgba(0, 0, 0, 0.45)' : 'rgba(18, 24, 38, 0.22)',
     },
+    /** Floating panel with three round actions (Capi: pin, mute, delete). */
     menuCard: {
       position: 'absolute',
       width: CHAT_LIST_MENU_WIDTH,
-      borderRadius: 12,
-      backgroundColor: c.inputBackgroundSolid,
-      paddingVertical: 8,
-      shadowColor: '#0F172A',
-      shadowOpacity: 0.14,
-      shadowRadius: 18,
-      shadowOffset: { width: 0, height: 8 },
-      elevation: 8,
-    },
-    actionRow: {
-      minHeight: 52,
-      paddingHorizontal: 14,
       flexDirection: 'row',
-      alignItems: 'center',
+      borderRadius: 22,
+      paddingVertical: 8,
+      paddingHorizontal: 6,
+      backgroundColor: c.inputBackgroundSolid,
+      shadowColor: '#3C1E82',
+      shadowOpacity: dark ? 0.4 : 0.24,
+      shadowRadius: 20,
+      shadowOffset: { width: 0, height: 10 },
+      elevation: 12,
     },
-    actionRowPressed: {
+    action: {
+      flex: 1,
+      alignItems: 'center',
+      gap: 5,
+      borderRadius: 16,
+      paddingVertical: 2,
+    },
+    actionPressed: {
       backgroundColor: c.rowPressed,
     },
     iconWrap: {
-      width: 30,
-      height: 30,
-      borderRadius: 10,
+      width: 42,
+      height: 42,
+      borderRadius: 21,
       alignItems: 'center',
       justifyContent: 'center',
-      backgroundColor: c.inputBackground,
-      marginRight: 12,
+      backgroundColor: withAlpha(c.accent, dark ? 0.18 : 0.1),
     },
     iconWrapDanger: {
-      backgroundColor: withAlpha('#E53935', 0.14),
+      backgroundColor: withAlpha(DANGER, dark ? 0.2 : 0.12),
     },
     actionLabel: {
-      flex: 1,
-      fontSize: 15,
-      fontWeight: '600',
+      fontSize: 11,
+      fontWeight: '700',
       color: c.textPrimary,
     },
     actionLabelDanger: {
-      color: '#E53935',
+      color: DANGER,
     },
   });
 }
