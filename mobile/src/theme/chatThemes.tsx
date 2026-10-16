@@ -21,6 +21,8 @@ const CHAT_THEME_IMAGE_ASSETS = {
   techDark: require('../assets/chat-themes/bg_tech_dark.png'),
   travelLight: require('../assets/chat-themes/bg_travel_light.png'),
   travelDark: require('../assets/chat-themes/bg_travel_dark.png'),
+  capiLight: require('../assets/chat-themes/bg_capi_light.png'),
+  capiDark: require('../assets/chat-themes/bg_capi_dark.png'),
 } as const;
 
 export type ChatThemeId = 'default' | 'meadow' | 'frost' | 'sunset';
@@ -58,26 +60,28 @@ export const CHAT_THEMES: Record<ChatThemeId, ChatTheme> = {
   default: {
     id: 'default',
     name: 'Без темы',
-    /** Светлая тема по умолчанию: чистый белый фон и синий исходящий бабл. */
-    bubbleMe: '#3390EC',
+    /** Capi, светлая тема по умолчанию: светлый фон и фиолетовый исходящий бабл. */
+    bubbleMe: '#7B4DF0',
     bubbleMeText: '#FFFFFF',
     bubbleMeMeta: 'rgba(255,255,255,0.88)',
-    /** Акценты внутри бабла (ссылки, волна голоса) — чуть темнее основного синего. */
-    bubbleMeAccent: '#1976D2',
-    /** Чипы реакций на своих сообщениях используют насыщенный синий. */
-    reactionMeAccent: '#0D6ECA',
-    replyBubbleMe: '#64A9EE',
-    replyAccentMe: '#D8ECFF',
+    /** Акценты внутри бабла (ссылки, волна голоса) — чуть темнее основного фиолетового. */
+    bubbleMeAccent: '#5B30C9',
+    /** Чипы реакций на своих сообщениях используют насыщенный фиолетовый. */
+    reactionMeAccent: '#4C28B8',
+    replyBubbleMe: '#9E7BF5',
+    replyAccentMe: '#EBE2FF',
     replyTextMe: 'rgba(255,255,255,0.92)',
-    replyAuthorMe: '#E7F4FF',
+    replyAuthorMe: '#F4EEFF',
     forwardHeaderMeSub: 'rgba(255,255,255,0.55)',
     forwardHeaderMe: 'rgba(255,255,255,0.96)',
-    deletedBubbleMe: '#D9EBFC',
-    deletedTextMe: '#356B9E',
-    canvasColor: '#FFFFFF',
-    wallpaperKind: 'solid',
-    wallpaperBase: '#FFFFFF',
+    deletedBubbleMe: '#E6DDFB',
+    deletedTextMe: '#5A4691',
+    /** Обои «Мох»: три оттенка зелёного и еле заметный узор. */
+    canvasColor: '#D2EBD8',
+    wallpaperKind: 'asset-image',
+    wallpaperBase: '#D2EBD8',
     wallpaperTint: 'transparent',
+    wallpaperAsset: CHAT_THEME_IMAGE_ASSETS.capiLight,
     previewBadge: '×',
   },
   meadow: {
@@ -153,26 +157,27 @@ export const CHAT_THEMES: Record<ChatThemeId, ChatTheme> = {
 
 export const CHAT_THEME_ORDER: ChatThemeId[] = ['default', 'meadow', 'frost', 'sunset'];
 
-/** «Без темы» при тёмной теме — однотонный фон как в веб-версии Chatus. */
+/** «Без темы» при тёмной теме — обои «Ночной лес»: тёмно-зелёные оттенки и еле заметный узор. */
 const DEFAULT_CHAT_THEME_DARK: ChatTheme = {
   id: 'default',
   name: 'Без темы',
-  bubbleMe: '#2B7FD6',
+  bubbleMe: '#6D3FE0',
   bubbleMeText: '#FFFFFF',
   bubbleMeMeta: 'rgba(255,255,255,0.82)',
-  bubbleMeAccent: '#5CA8FF',
-  replyBubbleMe: '#3D6EA8',
-  replyAccentMe: '#C8E6FF',
+  bubbleMeAccent: '#C4B5FD',
+  replyBubbleMe: '#5733B8',
+  replyAccentMe: '#E0D4FF',
   replyTextMe: 'rgba(255,255,255,0.92)',
   replyAuthorMe: '#FFD699',
   forwardHeaderMeSub: 'rgba(255,255,255,0.55)',
   forwardHeaderMe: 'rgba(255,255,255,0.95)',
-  deletedBubbleMe: '#2A3544',
+  deletedBubbleMe: '#2A2640',
   deletedTextMe: 'rgba(255,255,255,0.65)',
-  canvasColor: '#0E1621',
-  wallpaperKind: 'solid',
-  wallpaperBase: '#0E1621',
+  canvasColor: '#12302A',
+  wallpaperKind: 'asset-image',
+  wallpaperBase: '#12302A',
   wallpaperTint: 'transparent',
+  wallpaperAsset: CHAT_THEME_IMAGE_ASSETS.capiDark,
   previewBadge: '×',
 };
 

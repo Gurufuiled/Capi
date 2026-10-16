@@ -552,7 +552,7 @@ const styles = StyleSheet.create({
     borderColor: 'rgba(255,255,255,0.18)',
   },
   confirmBtn: {
-    backgroundColor: '#3390EC',
+    backgroundColor: '#6D3FE0',
   },
   toolBtnPressed: {
     opacity: 0.74,

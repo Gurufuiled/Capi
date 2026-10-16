@@ -66,7 +66,11 @@ export function shouldUseDarkDefaultOutgoingBubbleGradient(
   chatTheme: ChatTheme,
   resolvedScheme: ResolvedColorScheme,
 ): boolean {
-  return resolvedScheme === 'dark' && chatTheme.id === 'default';
+  // Capi: исходящие пузыри сплошного бренд-цвета (bubbleMe), без экранного градиента:
+  // белый текст на пурпурном градиенте давал около 3:1, а цвет менялся при скролле.
+  void chatTheme;
+  void resolvedScheme;
+  return false;
 }
 
 type ShellProps = {

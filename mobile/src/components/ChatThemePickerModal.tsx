@@ -159,7 +159,7 @@ export function ChatThemePickerModal({
                 >
                   {themeId === DEFAULT_CHAT_THEME_ID
                     ? isWallpaper
-                      ? 'Без обоев'
+                      ? 'Capi'
                       : 'По умолчанию'
                     : getChatTheme(themeId, resolvedScheme).name}
                 </Text>
@@ -175,7 +175,7 @@ export function ChatThemePickerModal({
               pressed && styles.applyButtonPressed,
             ]}
           >
-            <Text style={styles.applyButtonText}>Применить оформление</Text>
+            <Text style={[styles.applyButtonText, { color: colors.onAccent }]}>Применить оформление</Text>
           </Pressable>
         </View>
       </View>

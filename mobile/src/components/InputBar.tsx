@@ -186,17 +186,17 @@ const VOICE_START_WATCHDOG_MS = 5000;
 
 function PaperclipIcon() {
   const { colors } = useTheme();
-  return <Feather name="paperclip" size={20} color={colors.iconMuted} />;
+  return <Feather name="paperclip" size={20} color={colors.accent} />;
 }
 
 function MicIcon() {
   const { colors } = useTheme();
-  return <Feather name="mic" size={19} color={colors.iconMuted} />;
+  return <Feather name="mic" size={19} color={colors.accent} />;
 }
 
 function VideoNoteIcon() {
   const { colors } = useTheme();
-  return <Feather name="video" size={17} color={colors.iconMuted} />;
+  return <Feather name="video" size={17} color={colors.accent} />;
 }
 
 function SendIcon() {

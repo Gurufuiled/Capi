@@ -361,7 +361,7 @@ function createGroupMemberTagStyles(c: ThemeColors) {
   primaryActionButtonText: {
     fontSize: 17,
     fontWeight: '800',
-    color: '#FFFFFF',
+    color: c.onAccent,
   },
   cardPressed: {
     opacity: 0.88,

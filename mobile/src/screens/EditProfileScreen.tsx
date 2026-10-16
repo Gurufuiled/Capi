@@ -412,7 +412,7 @@ export function EditProfileScreen() {
             style={[styles.itemRow, { borderBottomWidth: 0 }]}
             onPress={() => setBirthdaySheetOpen(true)}
           >
-            <View style={[styles.iconContainer, { backgroundColor: '#3390ec' }]}>
+            <View style={[styles.iconContainer, { backgroundColor: '#6D3FE0' }]}>
               <MaterialCommunityIcons name="cake" size={18} color="#FFF" />
             </View>
             <View style={styles.itemContent}>

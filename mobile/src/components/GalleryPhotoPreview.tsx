@@ -478,8 +478,8 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   selectCircleActive: {
-    borderColor: "#3390EC",
-    backgroundColor: "#3390EC",
+    borderColor: "#6D3FE0",
+    backgroundColor: "#6D3FE0",
   },
   selectCircleText: {
     fontSize: 14,

@@ -170,7 +170,7 @@ function createCreateGroupChatStyles(c: ThemeColors) {
     avatarPlaceholderText: {
       fontSize: 18,
       fontWeight: '700',
-      color: '#FFFFFF',
+      color: c.onAccent,
     },
     resultInfo: {
       flex: 1,
@@ -236,7 +236,7 @@ function createCreateGroupChatStyles(c: ThemeColors) {
     createButtonText: {
       fontSize: 16,
       fontWeight: '800',
-      color: '#FFFFFF',
+      color: c.onAccent,
     },
   });
 }

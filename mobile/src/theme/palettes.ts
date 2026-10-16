@@ -1,5 +1,6 @@
 /**
  * Semantic color tokens shared by light and dark palettes (same keys).
+ * Capi: violet accent on cool neutrals; the violet → cyan brand gradient lives in `brand.ts`.
  */
 
 export type ThemeColors = {
@@ -8,6 +9,8 @@ export type ThemeColors = {
   textSecondaryMuted: string;
   placeholder: string;
   accent: string;
+  /** Текст и иконки на сплошной заливке `accent` (в тёмной теме акцент светлый, поэтому текст тёмный). */
+  onAccent: string;
   link: string;
   disabled: string;
   separator: string;
@@ -31,55 +34,57 @@ export type AppAppearancePreference = 'system' | 'light' | 'dark';
 
 export type ResolvedColorScheme = 'light' | 'dark';
 
-/** Telegram Android–inspired light defaults (legacy `colors` export). */
+/** Capi light palette (legacy `colors` export). */
 export const lightPalette: ThemeColors = {
-  textPrimary: '#1A1D21',
-  textSecondary: '#5C6370',
-  textSecondaryMuted: 'rgba(0,0,0,0.42)',
-  placeholder: '#999999',
-  accent: '#3390EC',
-  link: '#2B75C6',
-  disabled: '#cccccc',
-  separator: '#E3E4E8',
-  chatBackground: '#E7EBF0',
-  inputBackground: '#F4F4F5',
+  textPrimary: '#121826',
+  textSecondary: '#6B7685',
+  textSecondaryMuted: 'rgba(18,24,38,0.42)',
+  placeholder: '#9AA3B2',
+  accent: '#6D3FE0',
+  onAccent: '#FFFFFF',
+  link: '#6D3FE0',
+  disabled: '#C9CCD6',
+  separator: '#EDEBF5',
+  chatBackground: '#F7F6FC',
+  inputBackground: '#EEEAF8',
   inputBackgroundSolid: '#FFFFFF',
-  buttonBackground: '#E7EBF0',
-  header: '#F7F7F8',
-  toolbar: '#F7F7F8',
-  bubbleMe: '#3390EC',
+  buttonBackground: '#ECEAF6',
+  header: '#FFFFFF',
+  toolbar: '#FFFFFF',
+  bubbleMe: '#7B4DF0',
   bubbleOther: '#FFFFFF',
-  bubbleOtherBorder: '#DADCE0',
-  placeholderBg: '#E0E0E0',
-  iconMuted: '#9EA7B3',
-  composerBorder: '#DADADA',
+  bubbleOtherBorder: '#E4E0F1',
+  placeholderBg: '#E4E0F1',
+  iconMuted: '#9A93B5',
+  composerBorder: '#E1DCF0',
   composerSurface: '#FFFFFF',
-  rowPressed: '#F5F6F7',
+  rowPressed: '#F1EEFA',
 };
 
-/** Telegram-like dark surfaces; accent kept recognizable. */
+/** Capi dark palette: deep violet-black surfaces, lighter violet accent. */
 export const darkPalette: ThemeColors = {
-  textPrimary: '#F5F5F7',
-  textSecondary: '#9AA0A6',
-  textSecondaryMuted: 'rgba(255,255,255,0.72)',
-  placeholder: '#6D7175',
-  accent: '#5CA8FF',
-  link: '#6CB0F5',
-  disabled: '#5C5C5C',
-  separator: 'rgba(255,255,255,0.10)',
-  chatBackground: '#0E1621',
-  inputBackground: '#1A2330',
-  inputBackgroundSolid: '#1E2A35',
-  buttonBackground: '#1E2A35',
-  header: '#1A2330',
-  toolbar: '#1A2330',
-  bubbleMe: '#2B7FD6',
-  bubbleOther: '#2B2C2E',
-  bubbleOtherBorder: 'rgba(255,255,255,0.12)',
-  placeholderBg: '#3A3A3C',
-  iconMuted: '#8E95A0',
-  composerBorder: 'rgba(255,255,255,0.14)',
-  composerSurface: '#1E2A35',
+  textPrimary: '#F2F2F7',
+  textSecondary: '#9A9AB0',
+  textSecondaryMuted: 'rgba(242,242,247,0.72)',
+  placeholder: '#6F6F8A',
+  accent: '#A78BFA',
+  onAccent: '#12121A',
+  link: '#B7A2FB',
+  disabled: '#4A4A5E',
+  separator: 'rgba(255,255,255,0.08)',
+  chatBackground: '#12121A',
+  inputBackground: '#1B1B28',
+  inputBackgroundSolid: '#1B1B28',
+  buttonBackground: '#232336',
+  header: '#171722',
+  toolbar: '#171722',
+  bubbleMe: '#6D3FE0',
+  bubbleOther: '#232336',
+  bubbleOtherBorder: 'rgba(255,255,255,0.10)',
+  placeholderBg: '#2C2C42',
+  iconMuted: '#8A8AA6',
+  composerBorder: 'rgba(255,255,255,0.12)',
+  composerSurface: '#1B1B28',
   rowPressed: 'rgba(255,255,255,0.06)',
 };
 
