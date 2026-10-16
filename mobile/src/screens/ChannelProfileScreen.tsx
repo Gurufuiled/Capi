@@ -1,4 +1,5 @@
-import React, { useMemo } from 'react';
+import React, { useMemo } from 'react';
+import { countWithPlural, SUBSCRIBER_FORMS, MEMBER_FORMS, COMMENT_FORMS } from '../utils/pluralRu';
 import {
   ActivityIndicator,
   Alert,
@@ -634,7 +635,7 @@ export function ChannelProfileScreen() {
             </Pressable>
           </GestureDetector>
           <Text style={styles.title}>{title}</Text>
-          <Text style={styles.subtitle}>{channel.subscriber_count ?? 0} подписчиков</Text>
+          <Text style={styles.subtitle}>{countWithPlural(channel.subscriber_count ?? 0, SUBSCRIBER_FORMS)}</Text>
         </View>
 
         {showSubscriberToolbar ? (

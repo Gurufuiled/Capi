@@ -1,4 +1,5 @@
-import React from 'react';
+import React from 'react';
+import { countWithPlural, SUBSCRIBER_FORMS, MEMBER_FORMS, COMMENT_FORMS } from '../utils/pluralRu';
 import { createNativeStackNavigator, type NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { Platform, Pressable, StyleSheet, Text, View } from 'react-native';
 import { Image } from 'expo-image';
@@ -81,7 +82,7 @@ export function formatGroupSubtitle(memberCount?: number) {
     ) {
       return `${memberCount} участника`;
     }
-    return `${memberCount} участников`;
+    return countWithPlural(memberCount, MEMBER_FORMS);
   }
   return 'Групповой чат';
 }
@@ -415,7 +416,7 @@ export function ChatsStack() {
         options={({ route, navigation }) => {
           const channel = chats.find((item) => item.id === route.params.channelId) ?? null;
           const title = channel?.name || 'Канал';
-          const subtitle = `${channel?.subscriber_count ?? 0} подписчиков`;
+          const subtitle = countWithPlural(channel?.subscriber_count ?? 0, SUBSCRIBER_FORMS);
           const avatarUrl = resolveAvatarUrl(channel?.avatar_url);
           return {
             ...CHAT_INTERACTIVE_BACK_STACK_OPTIONS,

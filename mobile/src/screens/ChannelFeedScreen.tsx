@@ -1,4 +1,5 @@
 import React, { useMemo } from 'react';
+import { countWithPlural, SUBSCRIBER_FORMS, MEMBER_FORMS, COMMENT_FORMS } from '../utils/pluralRu';
 import * as Clipboard from 'expo-clipboard';
 import {
   ActivityIndicator,
@@ -89,9 +90,10 @@ const QUICK_REACTIONS = ['🔥', '👍', '❤️', '👏'];
 const EMPTY_FEED: Message[] = [];
 const SCREEN_WIDTH = Dimensions.get('window').width;
 const SCREEN_HEIGHT = Dimensions.get('window').height;
-const CHANNEL_MEDIA_MAX_WIDTH = Math.min(SCREEN_WIDTH * 0.72, 320);
-const CHANNEL_MEDIA_MAX_HEIGHT = Math.min(SCREEN_HEIGHT * 0.5, 380);
-const CHANNEL_MEDIA_MIN_PORTRAIT_WIDTH = 154;
+/** Ширина любого поста ленты (текст, медиа, голосовое) в долях ширины экрана. */
+const CHANNEL_POST_WIDTH_RATIO = 0.7;
+/** Пост с медиа занимает около 70% ширины экрана и прижат влево. */
+const CHANNEL_MEDIA_MAX_WIDTH = Math.min(SCREEN_WIDTH * 0.7, 460);
 
 function cloneForwardMedia(message: Message): Message['media'] | undefined {
   if (!message.media?.length) return undefined;
@@ -151,33 +153,6 @@ function sortPostsOldestFirst(messages: Message[]) {
   });
 }
 
-function computeChannelMediaWidth(media?: NonNullable<Message['media']>[number]): number | null {
-  const rawWidth = media?.width ?? null;
-  const rawHeight = media?.height ?? null;
-  if (!rawWidth || !rawHeight || rawWidth <= 0 || rawHeight <= 0) {
-    return null;
-  }
-
-  const baseScale = Math.min(
-    CHANNEL_MEDIA_MAX_WIDTH / rawWidth,
-    CHANNEL_MEDIA_MAX_HEIGHT / rawHeight,
-    1,
-  );
-  let width = Math.round(rawWidth * baseScale);
-  const isPortrait = rawHeight / rawWidth > 1.28;
-  if (isPortrait && width < CHANNEL_MEDIA_MIN_PORTRAIT_WIDTH) {
-    const minWidthScale = CHANNEL_MEDIA_MIN_PORTRAIT_WIDTH / rawWidth;
-    const safeScale = Math.min(
-      Math.max(baseScale, minWidthScale),
-      CHANNEL_MEDIA_MAX_HEIGHT / rawHeight,
-      1,
-    );
-    width = Math.round(rawWidth * safeScale);
-  }
-
-  return Math.min(Math.max(width, 120), CHANNEL_MEDIA_MAX_WIDTH);
-}
-
 type ChannelPostMedia = {
   media_type?: string;
   url?: string;
@@ -211,7 +186,11 @@ function resolveVisualMediaSize(
 
   return {
     width: targetWidth,
-    height: Math.round((media.height / media.width) * targetWidth),
+    // Очень высокие кадры обрезаем (cover), чтобы один пост не занимал несколько экранов.
+    height: Math.min(
+      Math.round((media.height / media.width) * targetWidth),
+      Math.round(targetWidth * 1.8),
+    ),
   };
 }
 
@@ -260,21 +239,20 @@ function createChannelFeedStyles(c: ThemeColors) {
       paddingBottom: 24,
     },
     postWrap: {
-      marginBottom: 8,
+      marginBottom: 10,
       width: '100%',
       alignSelf: 'stretch',
       alignItems: 'flex-start',
     },
     postBubble: {
-      maxWidth: '90%',
-      paddingHorizontal: 10,
-      paddingTop: 8,
-      paddingBottom: 8,
+      paddingHorizontal: 12,
+      paddingTop: 10,
+      paddingBottom: 10,
       alignItems: 'flex-start',
       backgroundColor: c.bubbleOther,
       borderWidth: StyleSheet.hairlineWidth,
       borderColor: c.bubbleOtherBorder,
-      borderRadius: 12,
+      borderRadius: 20,
     },
     postBubbleVisualMedia: {
       alignSelf: 'flex-start',
@@ -668,10 +646,7 @@ function renderChannelMediaAlbum(
   if (media.length <= 1) return null;
 
   const visibleMedia = media.slice(0, 9);
-  const albumWidth = Math.max(
-    120,
-    Math.min(options?.visualMediaWidth ?? CHANNEL_MEDIA_MAX_WIDTH, CHANNEL_MEDIA_MAX_WIDTH),
-  );
+  const albumWidth = Math.max(120, options?.visualMediaWidth ?? CHANNEL_MEDIA_MAX_WIDTH);
   const onTilePress = options?.onTilePress;
   const gap = 1.5;
   const caption = item.content?.trim() ?? '';
@@ -1905,7 +1880,7 @@ export function ChannelFeedScreen() {
               }
             >
               <Feather name="message-circle" size={14} color={c.accent} />
-              <Text style={styles.discussionLink}>{item.comment_count ?? 0} комментариев</Text>
+              <Text style={styles.discussionLink}>{countWithPlural(item.comment_count ?? 0, COMMENT_FORMS)}</Text>
             </Pressable>
           ) : null}
           {hasReactions ? (
@@ -1988,7 +1963,9 @@ export function ChannelFeedScreen() {
       const media = item.media?.[0];
       const isVisualMediaPost = item.msg_type === 'image' || item.msg_type === 'video';
       const isVoicePost = item.msg_type === 'voice';
-      const mediaWidth = isVisualMediaPost ? (computeChannelMediaWidth(media) ?? 240) : null;
+      // Все посты ленты одной ширины: 70% экрана, прижаты влево.
+      const postWidth = Math.round(Dimensions.get('window').width * CHANNEL_POST_WIDTH_RATIO);
+      const mediaWidth = isVisualMediaPost ? postWidth : null;
       const hasReactions = (item.reactions?.length ?? 0) > 0;
       const itemCanComment = canCommentOnPost(item, detail?.channel, canComment);
 
@@ -2007,7 +1984,7 @@ export function ChannelFeedScreen() {
               styles.postBubble,
               isVisualMediaPost && styles.postBubbleVisualMedia,
               isVoicePost && styles.postBubbleVoice,
-              isVisualMediaPost && mediaWidth ? { width: mediaWidth } : null,
+              { width: postWidth },
             ]}
           >
             {isVisualMediaPost ? (
@@ -2038,7 +2015,7 @@ export function ChannelFeedScreen() {
                     {/* Без numberOfLines + flexShrink: иначе после возврата с профиля RN даёт тексту чуть меньшую ширину и режет хвост / «…» */}
                     <Text style={styles.discussionLink}>
                       {(item.comment_count ?? 0) > 0
-                        ? `${item.comment_count} комментариев`
+                        ? countWithPlural(item.comment_count, COMMENT_FORMS)
                         : 'Прокомментировать'}
                     </Text>
                   </Pressable>
@@ -2099,7 +2076,7 @@ export function ChannelFeedScreen() {
   );
   const headerTitle = headerChannel?.name?.trim() || 'Канал';
   const headerAvatar = resolveAvatarUrl(headerChannel?.avatar_url ?? null);
-  const headerSubtitle = `${headerChannel?.subscriber_count ?? 0} подписчиков`;
+  const headerSubtitle = countWithPlural(headerChannel?.subscriber_count ?? 0, SUBSCRIBER_FORMS);
 
   const openChannelProfile = React.useCallback(() => {
     navigation.navigate('ChannelProfile', { channelId });

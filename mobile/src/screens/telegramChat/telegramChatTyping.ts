@@ -1,4 +1,5 @@
-import type { TdlibUpdate } from '../../services/tdlib/TdlibClient';
+import type { TdlibUpdate } from '../../services/tdlib/TdlibClient';
+import { countWithPlural, SUBSCRIBER_FORMS, MEMBER_FORMS, COMMENT_FORMS } from '../../utils/pluralRu';
 import { getNestedRecord } from './tdlibMapping';
 
 /** TDLib refreshes typing about every 5s; keep a small grace window. */
@@ -69,6 +70,6 @@ export function buildTelegramMemberCountSubtitle(
 ): string | null {
   if (memberCount == null || memberCount <= 0) return null;
   return isChannel
-    ? `${memberCount.toLocaleString()} подписчиков`
-    : `${memberCount.toLocaleString()} участников`;
+    ? countWithPlural(memberCount, SUBSCRIBER_FORMS)
+    : countWithPlural(memberCount, MEMBER_FORMS);
 }

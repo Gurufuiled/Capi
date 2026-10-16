@@ -1,4 +1,5 @@
-import type { GroupCallParticipant } from '../contexts/GroupCallContext';
+import type { GroupCallParticipant } from '../contexts/GroupCallContext';
+import { countWithPlural, MEMBER_FORMS } from './pluralRu';
 
 export type GroupCallSystemAction = 'started' | 'ended';
 
@@ -67,5 +68,5 @@ export function formatParticipantCount(count: number): string {
   ) {
     return `${count} участника`;
   }
-  return `${count} участников`;
+  return countWithPlural(count, MEMBER_FORMS);
 }

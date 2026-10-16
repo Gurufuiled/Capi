@@ -1,4 +1,5 @@
-import React, { useMemo } from 'react';
+import React, { useMemo } from 'react';
+import { countWithPlural, SUBSCRIBER_FORMS, MEMBER_FORMS, COMMENT_FORMS } from '../utils/pluralRu';
 import {
   ActivityIndicator,
   FlatList,
@@ -170,7 +171,7 @@ export function ChannelCatalogScreen() {
     ({ item }: { item: Chat }) => {
       const title = item.name ?? 'Безымянный канал';
       const locked = isPreviewRequired(item);
-      const subtitle = `${item.subscriber_count ?? 0} подписчиков`;
+      const subtitle = countWithPlural(item.subscriber_count ?? 0, SUBSCRIBER_FORMS);
 
       return (
         <Pressable

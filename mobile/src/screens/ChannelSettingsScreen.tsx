@@ -1,4 +1,5 @@
-import React, { useMemo } from 'react';
+import React, { useMemo } from 'react';
+import { countWithPlural, SUBSCRIBER_FORMS, MEMBER_FORMS, COMMENT_FORMS } from '../utils/pluralRu';
 import {
   ActivityIndicator,
   Alert,
@@ -327,7 +328,7 @@ export function ChannelSettingsScreen() {
             <Text style={styles.channelName} numberOfLines={1}>
               {title}
             </Text>
-            <Text style={styles.channelSub}>{subscriberCount} подписчиков</Text>
+            <Text style={styles.channelSub}>{countWithPlural(Number(subscriberCount) || 0, SUBSCRIBER_FORMS)}</Text>
           </View>
         </View>
 
