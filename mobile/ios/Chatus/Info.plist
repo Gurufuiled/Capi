@@ -7,7 +7,7 @@
 	<key>CFBundleDevelopmentRegion</key>
 	<string>$(DEVELOPMENT_LANGUAGE)</string>
 	<key>CFBundleDisplayName</key>
-	<string>Chatus</string>
+	<string>Capi</string>
 	<key>CFBundleExecutable</key>
 	<string>$(EXECUTABLE_NAME)</string>
 	<key>CFBundleIdentifier</key>
@@ -28,8 +28,8 @@
 			<key>CFBundleURLSchemes</key>
 			<array>
 				<string>messenger</string>
-				<string>chatus</string>
-				<string>com.chatus.app</string>
+				<string>capi</string>
+				<string>com.capi.app</string>
 			</array>
 		</dict>
 	</array>
@@ -62,7 +62,7 @@
 	<key>NSCameraUsageDescription</key>
 	<string>Разрешите доступ к камере для записи видеокружков.</string>
 	<key>NSContactsUsageDescription</key>
-	<string>Разрешите доступ к контактам для поиска друзей в Chatus и Telegram.</string>
+	<string>Разрешите доступ к контактам для поиска друзей в Capi и Telegram.</string>
 	<key>NSFaceIDUsageDescription</key>
 	<string>Allow $(PRODUCT_NAME) to access your Face ID biometric data.</string>
 	<key>NSMicrophoneUsageDescription</key>

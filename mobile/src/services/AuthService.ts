@@ -132,7 +132,7 @@ export class AuthService {
             ? e.message
             : String(e);
       throw new Error(
-        `${msg}. Без API Chatus форма Loginus в приложении не откроется — проверьте ${API_BASE_URL}/auth/login-url`,
+        `${msg}. Без API Capi форма Loginus в приложении не откроется — проверьте ${API_BASE_URL}/auth/login-url`,
       );
     } finally {
       clearTimeout(timeoutId);

@@ -22,7 +22,7 @@
         "expo-notifications",
         {
           "icon": "./assets/notification_icon_small.png",
-          "color": "#4B8FEA",
+          "color": "#6D3FE0",
           "defaultChannel": "chatus_messages",
           "sounds": ["./assets/sounds/message_notification.wav"]
         }
@@ -50,26 +50,26 @@
       [
         "expo-contacts",
         {
-          "contactsPermission": "Разрешите доступ к контактам для поиска друзей в Chatus и Telegram."
+          "contactsPermission": "Разрешите доступ к контактам для поиска друзей в Capi и Telegram."
         }
       ]
     ],
-    "name": "Chatus",
-    "slug": "chatus",
+    "name": "Capi",
+    "slug": "capi",
     "version": "1.0.33",
     "orientation": "portrait",
-    "icon": "./assets/chatus_icon.png",
+    "icon": "./assets/capi_icon.png",
     "userInterfaceStyle": "light",
-    "scheme": ["messenger", "chatus"],
+    "scheme": ["capi", "messenger"],
     "splash": {
       "resizeMode": "contain",
-      "backgroundColor": "#E7EBF0"
+      "backgroundColor": "#F7F6FC"
     },
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.chatus.app",
+      "bundleIdentifier": "com.capi.app",
       "infoPlist": {
-        "CFBundleDisplayName": "Chatus",
+        "CFBundleDisplayName": "Capi",
         "LSMinimumSystemVersion": "15.1",
         "NSAppTransportSecurity": {
           "NSAllowsLocalNetworking": true,
@@ -87,7 +87,7 @@
     },
     "android": {
       "versionCode": 2064630344,
-      "icon": "./assets/chatus_icon.png",
+      "icon": "./assets/capi_icon.png",
       "intentFilters": [
         {
           "action": "VIEW",
@@ -106,11 +106,11 @@
         }
       ],
       "adaptiveIcon": {
-        "backgroundColor": "#E6F4FE",
-        "foregroundImage": "./assets/chatus_icon.png"
+        "backgroundColor": "#1A0F33",
+        "foregroundImage": "./assets/capi_adaptive_foreground.png"
       },
       "predictiveBackGestureEnabled": false,
-      "package": "com.chatus.app"
+      "package": "com.capi.app"
     },
     "web": {
       "favicon": "./assets/favicon.png"

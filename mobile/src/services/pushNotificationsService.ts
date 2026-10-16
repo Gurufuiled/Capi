@@ -66,8 +66,8 @@ function channelBase(name: string) {
 export async function ensureAndroidPushChannels(): Promise<void> {
   if (Platform.OS !== 'android') return;
   await Notifications.setNotificationChannelAsync(ANDROID_CHANNEL_CHATUS, {
-    ...channelBase('Сообщения Chatus'),
-    description: 'Новые сообщения в аккаунте Chatus',
+    ...channelBase('Сообщения Capi'),
+    description: 'Новые сообщения в аккаунте Capi',
   });
   await Notifications.setNotificationChannelAsync(ANDROID_CHANNEL_TELEGRAM, {
     ...channelBase('Telegram'),

@@ -399,7 +399,7 @@ export function ContactsScreen() {
                 onPress={() => void handleRequestPermission()}
               >
                 <Text style={styles.permissionBannerText}>
-                  Разрешите доступ к контактам, чтобы найти друзей в Chatus
+                  Разрешите доступ к контактам, чтобы найти друзей в Capi
                 </Text>
                 <Text style={styles.permissionBannerButton}>Разрешить</Text>
               </Pressable>

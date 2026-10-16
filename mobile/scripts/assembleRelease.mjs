@@ -89,7 +89,7 @@ const result = spawnSync(gradle, ['assembleRelease'], {
 
 const code = result.status ?? 1;
 if (code === 0) {
-  const outApk = path.join(androidDir, 'app/build/outputs/apk/release/chatus-release.apk');
+  const outApk = path.join(androidDir, 'app/build/outputs/apk/release/capi-release.apk');
   if (fs.existsSync(outApk)) {
     const stat = fs.statSync(outApk);
     // eslint-disable-next-line no-console

@@ -89,7 +89,7 @@ android {
 
     namespace 'com.chatus.app'
     defaultConfig {
-        applicationId 'com.chatus.app'
+        applicationId 'com.capi.app'
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 2064630344
@@ -136,7 +136,7 @@ android {
 // APK basename (withAndroidApkBasename)
 android.applicationVariants.configureEach { variant ->
     variant.outputs.configureEach { output ->
-        output.outputFileName = "chatus-${variant.buildType.name}.apk"
+        output.outputFileName = "capi-${variant.buildType.name}.apk"
     }
 }
 

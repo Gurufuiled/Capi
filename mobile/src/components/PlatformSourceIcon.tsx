@@ -17,7 +17,7 @@ export function PlatformSourceIcon({ source, size = 12, style }: PlatformSourceI
     return (
       <View style={[styles.container, style]}>
         <Image
-          source={require('../../assets/chatus_icon.png')}
+          source={require('../../assets/capi_icon.png')}
           style={{ width: size, height: size }}
           contentFit="contain"
         />

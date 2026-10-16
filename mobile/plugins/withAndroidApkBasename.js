@@ -6,7 +6,7 @@ const { withAppBuildGradle } = require('@expo/config-plugins');
 
 /** @param {import('@expo/config-plugins').ExportedConfig} config */
 function withAndroidApkBasename(config, props = {}) {
-  const basename = typeof props.basename === 'string' ? props.basename : 'chatus';
+  const basename = typeof props.basename === 'string' ? props.basename : 'capi';
 
   return withAppBuildGradle(config, (mod) => {
     if (mod.modResults.language !== 'groovy') {

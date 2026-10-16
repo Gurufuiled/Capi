@@ -4,14 +4,14 @@ import { useTheme } from '../contexts/ThemeContext';
 import { uiStore, type ChatListFilter } from '../stores/uiStore';
 
 const OPTIONS: { value: ChatListFilter; label: string; hint: string }[] = [
-  { value: 'all', label: 'Все чаты', hint: 'Показывать Chatus и Telegram вместе' },
-  { value: 'chatus_only', label: 'Только Chatus', hint: 'Показывать только чаты Chatus' },
+  { value: 'all', label: 'Все чаты', hint: 'Показывать Capi и Telegram вместе' },
+  { value: 'chatus_only', label: 'Только Capi', hint: 'Показывать только чаты Capi' },
   { value: 'telegram_only', label: 'Только Telegram', hint: 'Показывать только чаты Telegram' },
 ];
 
 const FILTER_DESCRIPTIONS: Record<ChatListFilter, string> = {
   all: 'Все чаты',
-  chatus_only: 'Только Chatus',
+  chatus_only: 'Только Capi',
   telegram_only: 'Только Telegram',
 };
 

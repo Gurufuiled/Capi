@@ -17,7 +17,7 @@ function withAndroidNotificationLargeIcon(config) {
     'android',
     async (cfg) => {
       const projectRoot = cfg.modRequest.projectRoot;
-      const src = path.join(projectRoot, 'assets', 'chatus_icon.png');
+      const src = path.join(projectRoot, 'assets', 'capi_icon.png');
       if (!fs.existsSync(src)) {
         throw new Error(`withAndroidNotificationLargeIcon: missing ${src}`);
       }

@@ -10,7 +10,7 @@ export {
 } from './chatusStickerPayload';
 
 /** Плейсхолдер для неизвестного pack/id в сообщении. */
-const PLACEHOLDER: ImageSourcePropType = require('../../assets/chatus_icon.png');
+const PLACEHOLDER: ImageSourcePropType = require('../../assets/capi_icon.png');
 
 /** Старые id в сообщениях / истории — те же файлы, что и по имени кодпоинта. */
 const FRIEND_LEGACY_STICKER_TO_STEM: Readonly<Record<string, string>> = {

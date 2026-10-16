@@ -163,7 +163,7 @@ export function AppUpdateGate() {
     } catch (e) {
       if (e instanceof ApkInstallPermissionRequiredError) {
         setInstallState('permission');
-        setErrorText('Разрешите Chatus устанавливать обновления, затем вернитесь и нажмите «Продолжить».');
+        setErrorText('Разрешите Capi устанавливать обновления, затем вернитесь и нажмите «Продолжить».');
         await openApkInstallPermissionSettings().catch(() => undefined);
         return;
       }

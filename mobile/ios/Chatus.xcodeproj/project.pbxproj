@@ -391,7 +391,7 @@
 					"-ltdjson",
 				);
 				OTHER_SWIFT_FLAGS = "$(inherited) -D EXPO_CONFIGURATION_DEBUG";
-				PRODUCT_BUNDLE_IDENTIFIER = com.chatus.app;
+				PRODUCT_BUNDLE_IDENTIFIER = com.capi.app;
 				PRODUCT_NAME = Chatus;
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				SWIFT_OBJC_BRIDGING_HEADER = "Chatus/Chatus-Bridging-Header.h";
@@ -432,7 +432,7 @@
 					"-ltdjson",
 				);
 				OTHER_SWIFT_FLAGS = "$(inherited) -D EXPO_CONFIGURATION_RELEASE";
-				PRODUCT_BUNDLE_IDENTIFIER = com.chatus.app;
+				PRODUCT_BUNDLE_IDENTIFIER = com.capi.app;
 				PRODUCT_NAME = Chatus;
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				SWIFT_OBJC_BRIDGING_HEADER = "Chatus/Chatus-Bridging-Header.h";
