@@ -1,0 +1,24 @@
+# Зависимости ставятся на сервере EAS — локальный node_modules не отправлять
+node_modules
+**/node_modules
+
+# Нативные папки — только prebuild на Linux (без Windows-путей и без ручного ios)
+android
+**/android
+ios
+**/ios
+
+# Xcode / CocoaPods (если появятся)
+**/Pods
+**/build
+**/*.xcworkspace/xcuserdata
+
+.expo
+dist
+web-build
+*.log
+
+# Локальные артефакты
+*.apk
+*.aab
+*.ipa

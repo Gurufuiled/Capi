@@ -1,0 +1,39 @@
+# LiveKit self-hosted config (VPS / docker compose)
+# Keys must match LIVEKIT_API_KEY / LIVEKIT_API_SECRET in server .env
+
+port: 7880
+bind_addresses:
+  - ""
+
+rtc:
+  tcp_port: 7881
+  port_range_start: 50000
+  port_range_end: 50100
+  # Behind Docker NAT STUN self-discovery is unreliable — pin the VPS public IP.
+  # (node_ip is ignored when use_external_ip is true.)
+  use_external_ip: false
+  node_ip: 45.11.93.210
+
+keys:
+  devkey: devsecret_change_me_in_production
+
+room:
+  empty_timeout: 300
+  max_participants: 30
+
+logging:
+  level: info
+
+# Embedded TURN — fallback when UDP hole-punching (srflx) fails for some NATs.
+turn:
+  enabled: true
+  domain: messenger.startapus.com
+  udp_port: 3478
+  # Must match published UDP ports in docker-compose (avoid default 30000-40000).
+  relay_range_start: 50000
+  relay_range_end: 50100
+
+webhook:
+  api_key: devkey
+  urls:
+    - http://api:4000/api/livekit/webhook

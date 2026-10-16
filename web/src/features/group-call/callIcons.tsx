@@ -1,0 +1,119 @@
+type IconProps = {
+  size?: number;
+  className?: string;
+};
+
+export function IconMic({ size = 26, className }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor" className={className} aria-hidden>
+      <path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z" />
+      <path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z" />
+    </svg>
+  );
+}
+
+export function IconMicOff({ size = 26, className }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor" className={className} aria-hidden>
+      <path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z" />
+      <path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z" />
+      <path d="M3 3l18 18" stroke="currentColor" strokeWidth="2" />
+    </svg>
+  );
+}
+
+export function IconVideo({ size = 26, className }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor" className={className} aria-hidden>
+      <path d="M17 10.5V7a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1h12a1 1 0 001-1v-3.5l4 4v-11l-4 4z" />
+    </svg>
+  );
+}
+
+/** Material-style crossed video — camera off. */
+export function IconVideoOff({ size = 26, className }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor" className={className} aria-hidden>
+      <path d="M21 6.5l-4 4V7c0-.55-.45-1-1-1H9.83L21 17.17V6.5zM3.27 2L2 3.27 4.73 6H4c-.55 0-1 .45-1 1v10c0 .55.45 1 1 1h12c.21 0 .39-.08.54-.18L19.73 21 21 19.73 3.27 2z" />
+    </svg>
+  );
+}
+
+export function IconChevronDown({ size = 14, className }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor" className={className} aria-hidden>
+      <path d="M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6-6-6 1.41-1.41z" />
+    </svg>
+  );
+}
+
+/** Telegram-style handset — sharp at 24×24 (no CSS transform). */
+export function IconHangup({ size = 26, className }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor" className={className} aria-hidden>
+      <path d="M19.035 15.184 16.561 14.901c-.775-.13-1.836.359-3.185 1.465-.061.051-.234.168-.426.175-.186.007-.39-.096-.457-.132-2.331-1.274-3.759-2.721-5.026-5.102-.032-.059-.111-.22-.087-.368.022-.136.144-.262.187-.314 1.028-1.26 1.541-2.325 1.541-3.195l-.282-2.455c-.117-.984-.945-1.724-1.939-1.724H5.202c-1.101 0-2.017.916-1.948 2.017.516 8.319 7.17 14.963 15.479 15.479 1.101.069 2.017-.847 2.017-1.948v-1.685c.01-.984-.731-1.812-1.715-1.929z" />
+    </svg>
+  );
+}
+
+export function IconVolume({ size = 26, className }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor" className={className} aria-hidden>
+      <path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z" />
+    </svg>
+  );
+}
+
+export function IconScreenShare({ size = 26, className }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor" className={className} aria-hidden>
+      <path d="M20 18c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2H4c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2H0v2h24v-2h-4zM4 6h16v10H4V6zm8 6.5l-4-4h2.5V7h3v1.5H16l-4 4z" />
+    </svg>
+  );
+}
+
+export function IconScreenShareOff({ size = 26, className }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor" className={className} aria-hidden>
+      <path d="M20 18c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2H4c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2H0v2h24v-2h-4zM4 6h16v10H4V6z" />
+      <path d="M3 3l18 18" stroke="currentColor" strokeWidth="2" fill="none" />
+    </svg>
+  );
+}
+
+/** Idle record affordance — filled disc with outer ring. */
+export function IconRecord({ size = 26, className }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" className={className} aria-hidden>
+      <circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" strokeWidth="1.75" opacity="0.85" />
+      <circle cx="12" cy="12" r="5.5" fill="currentColor" />
+    </svg>
+  );
+}
+
+/** Stop glyph while local recording is active. */
+export function IconRecordStop({ size = 26, className }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor" className={className} aria-hidden>
+      <rect x="7" y="7" width="10" height="10" rx="2" />
+    </svg>
+  );
+}
+
+/** Expand — enter fullscreen presentation mode for a screen-share tile. */
+export function IconFullscreenEnter({ size = 18, className }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor" className={className} aria-hidden>
+      <path d="M4 9V4h5v2H6v3H4zm10-5h5v5h-2V6h-3V4zM4 15h2v3h3v2H4v-5zm14 3v-3h2v5h-5v-2h3z" />
+    </svg>
+  );
+}
+
+/** Collapse — exit fullscreen presentation mode. */
+export function IconFullscreenExit({ size = 18, className }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor" className={className} aria-hidden>
+      <path d="M9 4h2v5H4V7h3V4h2zm11 3v2h-5V4h2v3h3zM6 15h3v2H4v-5h2v3zm12 3h-3v2h5v-5h-2v3z" />
+    </svg>
+  );
+}

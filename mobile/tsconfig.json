@@ -1,0 +1,10 @@
+{
+  "extends": "expo/tsconfig.base",
+  "compilerOptions": {},
+  "exclude": [
+    "node_modules",
+    "dist*",
+    "metro-*.js",
+    ".expo"
+  ]
+}

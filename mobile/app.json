@@ -1,0 +1,119 @@
+{
+  "expo": {
+    "plugins": [
+      "./plugins/withAndroidApkBasename",
+      "./plugins/withTdlibNative",
+      "./plugins/withAndroidApkInstaller",
+      [
+        "expo-build-properties",
+        {
+          "android": {
+            "usesCleartextTraffic": true
+          },
+          "ios": {
+            "deploymentTarget": "15.1"
+          }
+        }
+      ],
+      "expo-secure-store",
+      "expo-font",
+      "expo-sqlite",
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/notification_icon_small.png",
+          "color": "#4B8FEA",
+          "defaultChannel": "chatus_messages",
+          "sounds": ["./assets/sounds/message_notification.wav"]
+        }
+      ],
+      "./plugins/withAndroidNotificationLargeIcon",
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "Разрешите доступ к камере для записи видеокружков.",
+          "microphonePermission": "Разрешите доступ к микрофону для записи видеокружков.",
+          "recordAudioAndroid": true
+        }
+      ],
+      "expo-video",
+      "expo-asset",
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Разрешите доступ к фото для выбора изображений и аватара.",
+          "cameraPermission": "Разрешите доступ к камере для съёмки и аватара."
+        }
+      ],
+      "expo-image",
+      "./plugins/withIosProductionPlist",
+      [
+        "expo-contacts",
+        {
+          "contactsPermission": "Разрешите доступ к контактам для поиска друзей в Chatus и Telegram."
+        }
+      ]
+    ],
+    "name": "Chatus",
+    "slug": "chatus",
+    "version": "1.0.33",
+    "orientation": "portrait",
+    "icon": "./assets/chatus_icon.png",
+    "userInterfaceStyle": "light",
+    "scheme": ["messenger", "chatus"],
+    "splash": {
+      "resizeMode": "contain",
+      "backgroundColor": "#E7EBF0"
+    },
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.chatus.app",
+      "infoPlist": {
+        "CFBundleDisplayName": "Chatus",
+        "LSMinimumSystemVersion": "15.1",
+        "NSAppTransportSecurity": {
+          "NSAllowsLocalNetworking": true,
+          "NSExceptionDomains": {
+            "messenger.startapus.com": {
+              "NSIncludesSubdomains": true
+            },
+            "45.11.93.210": {
+              "NSExceptionAllowsInsecureHTTPLoads": true,
+              "NSIncludesSubdomains": true
+            }
+          }
+        }
+      }
+    },
+    "android": {
+      "versionCode": 2064630344,
+      "icon": "./assets/chatus_icon.png",
+      "intentFilters": [
+        {
+          "action": "VIEW",
+          "autoVerify": true,
+          "data": [
+            {
+              "scheme": "messenger",
+              "host": "auth",
+              "pathPrefix": "/callback"
+            }
+          ],
+          "category": [
+            "BROWSABLE",
+            "DEFAULT"
+          ]
+        }
+      ],
+      "adaptiveIcon": {
+        "backgroundColor": "#E6F4FE",
+        "foregroundImage": "./assets/chatus_icon.png"
+      },
+      "predictiveBackGestureEnabled": false,
+      "package": "com.chatus.app"
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    }
+  }
+}

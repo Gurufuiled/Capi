@@ -1,0 +1,341 @@
+import { useEffect, useRef } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
+import { useAuthUiStore } from '@/stores/authUiStore';
+import { useTypingStore } from '@/stores/typingStore';
+import { useWsUiStore } from '@/stores/wsUiStore';
+import { chatsQueryKey } from '@/queries/chats.queries';
+import { messagesQueryKey } from '@/queries/messages.queries';
+import { pollQueryKey } from '@/services/pollService';
+import type { ChatSummary } from '@/types/chat';
+import type { MappedMessage } from '@/types/message';
+import type { MappedPoll } from '@/utils/pollPayload';
+import {
+  getMessageStatusRank,
+  getOutgoingMessagePreview,
+} from '@/features/conversation/messageFormatters';
+import { isUiPreviewMode } from '@/dev/uiPreview';
+import { wsClient } from './wsClient';
+
+function sortMessagesAsc(messages: MappedMessage[]): MappedMessage[] {
+  return [...messages].sort((a, b) => a.created_at - b.created_at);
+}
+
+function mergeIncomingMessage(
+  list: MappedMessage[],
+  message: MappedMessage,
+  currentUserId: string | null,
+): MappedMessage[] {
+  if (list.some((m) => m.id === message.id)) return list;
+
+  const clientTempId =
+    typeof message.client_temp_id === 'string' && message.client_temp_id.trim().length > 0
+      ? message.client_temp_id.trim()
+      : null;
+
+  let replaceIdx = -1;
+
+  if (clientTempId && currentUserId && message.sender_id === currentUserId) {
+    replaceIdx = list.findIndex(
+      (m) =>
+        (m.id === `temp-${clientTempId}` ||
+          m.id === clientTempId ||
+          m.client_temp_id === clientTempId) &&
+        m.sender_id === currentUserId,
+    );
+  }
+
+  if (
+    replaceIdx === -1 &&
+    !clientTempId &&
+    currentUserId &&
+    message.sender_id === currentUserId
+  ) {
+    for (let i = 0; i < list.length; i++) {
+      const m = list[i];
+      if (
+        m.status === 'sending' &&
+        m.sender_id === currentUserId &&
+        m.msg_type === message.msg_type &&
+        (m.msg_type === 'text' ? m.content === message.content : true)
+      ) {
+        replaceIdx = i;
+      }
+    }
+  }
+
+  if (replaceIdx >= 0) {
+    const next = [...list];
+    next[replaceIdx] = message;
+    return sortMessagesAsc(next);
+  }
+
+  return sortMessagesAsc([...list, message]);
+}
+
+function bumpUnreadForIncoming(
+  chats: ChatSummary[],
+  chatId: string,
+  message: MappedMessage,
+  currentUserId: string | null,
+  activeChatId: string | undefined,
+): ChatSummary[] {
+  if (!currentUserId || message.sender_id === currentUserId) return chats;
+  if (activeChatId === chatId) return chats;
+
+  return chats.map((chat) =>
+    chat.id === chatId ? { ...chat, unread_count: (chat.unread_count ?? 0) + 1 } : chat,
+  );
+}
+
+export function useWsLifecycle(activeChatId?: string) {
+  const ready = useAuthUiStore((s) => s.embedStatus === 'ready');
+  const currentUserId = useAuthUiStore((s) => s.user?.id ?? null);
+  const queryClient = useQueryClient();
+  const activeChatIdRef = useRef(activeChatId);
+  const currentUserIdRef = useRef(currentUserId);
+  const hasEverConnectedRef = useRef(false);
+  const wasDisconnectedRef = useRef(false);
+
+  activeChatIdRef.current = activeChatId;
+  currentUserIdRef.current = currentUserId;
+
+  useEffect(() => {
+    if (!ready || isUiPreviewMode()) return;
+
+    wsClient.setHandlers({
+      onConnecting: () => useWsUiStore.getState().setConnecting(),
+      onConnected: () => {
+        useWsUiStore.getState().setConnected();
+        if (hasEverConnectedRef.current && wasDisconnectedRef.current) {
+          void queryClient.invalidateQueries({ queryKey: chatsQueryKey });
+          const activeId = activeChatIdRef.current;
+          if (activeId) {
+            void queryClient.invalidateQueries({ queryKey: messagesQueryKey(activeId) });
+          }
+        }
+        hasEverConnectedRef.current = true;
+        wasDisconnectedRef.current = false;
+      },
+      onDisconnected: () => {
+        useWsUiStore.getState().setDisconnected();
+        wasDisconnectedRef.current = true;
+      },
+      onMessageDeleted: (payload) => {
+        const chatId = payload.chat_id;
+        const messageId = payload.message_id;
+        if (typeof chatId !== 'string' || typeof messageId !== 'string') return;
+
+        queryClient.setQueryData<MappedMessage[]>(messagesQueryKey(chatId), (old) =>
+          old?.map((m) =>
+            m.id === messageId ? { ...m, is_deleted: true, content: null } : m,
+          ),
+        );
+      },
+      onChatPinnedMessageUpdated: (payload) => {
+        const chatId = payload.chat_id;
+        const pinnedMessageId = payload.pinned_message_id;
+        if (typeof chatId !== 'string') return;
+
+        queryClient.setQueryData<ChatSummary[]>(chatsQueryKey, (old) =>
+          old?.map((chat) =>
+            chat.id === chatId
+              ? {
+                  ...chat,
+                  pinned_message_id:
+                    typeof pinnedMessageId === 'string' ? pinnedMessageId : null,
+                }
+              : chat,
+          ),
+        );
+      },
+      onMessageAck: (payload) => {
+        const chatId = payload.chat_id;
+        const messageId = payload.message_id;
+        const status = payload.status;
+        const userId = payload.user_id;
+        const meId = currentUserIdRef.current;
+
+        if (
+          typeof chatId !== 'string' ||
+          typeof messageId !== 'string' ||
+          typeof status !== 'string' ||
+          typeof userId !== 'string'
+        ) {
+          return;
+        }
+
+        // Process only when ack is from recipient (we are the sender).
+        if (!meId || userId === meId) return;
+
+        queryClient.setQueryData<MappedMessage[]>(messagesQueryKey(chatId), (old) => {
+          if (!old) return old;
+          return old.map((m) => {
+            if (m.id !== messageId || m.sender_id !== meId) return m;
+            if (getMessageStatusRank(status) < getMessageStatusRank(m.status)) return m;
+            return { ...m, status };
+          });
+        });
+
+        queryClient.setQueryData<ChatSummary[]>(chatsQueryKey, (old) =>
+          old?.map((chat) => {
+            if (chat.id !== chatId || chat.last_message?.id !== messageId) return chat;
+            const lastStatus = chat.last_message.status;
+            if (getMessageStatusRank(status) < getMessageStatusRank(lastStatus)) return chat;
+            return {
+              ...chat,
+              last_message: { ...chat.last_message, status },
+            };
+          }),
+        );
+      },
+      onNewMessage: (payload) => {
+        const message = payload.message as MappedMessage | undefined;
+        if (!message?.chat_id || !message.id) return;
+
+        const meId = currentUserIdRef.current;
+        const openChatId = activeChatIdRef.current;
+
+        if (message.sender_id) {
+          useTypingStore.getState().clearUserTyping(message.chat_id, message.sender_id);
+        }
+
+        queryClient.setQueryData<MappedMessage[]>(messagesQueryKey(message.chat_id), (old) =>
+          mergeIncomingMessage(old ?? [], message, meId),
+        );
+
+        queryClient.setQueryData<ChatSummary[]>(chatsQueryKey, (old) => {
+          if (!old) return old;
+          const withLast = old.map((chat) =>
+            chat.id === message.chat_id
+              ? {
+                  ...chat,
+                  last_message: message,
+                  last_message_id: message.id,
+                  last_message_at: message.created_at,
+                  last_message_preview:
+                    getOutgoingMessagePreview(message) || chat.last_message_preview,
+                }
+              : chat,
+          );
+          return bumpUnreadForIncoming(withLast, message.chat_id, message, meId, openChatId);
+        });
+      },
+      onTyping: (payload) => {
+        const chatId = payload.chat_id;
+        const userId = payload.user_id;
+        const meId = currentUserIdRef.current;
+        if (typeof chatId !== 'string' || typeof userId !== 'string') return;
+        if (meId && userId === meId) return;
+
+        const isTyping = payload.is_typing !== false;
+        useTypingStore.getState().setTypingUser(chatId, userId, isTyping);
+      },
+      onMessageReactionsUpdated: (payload) => {
+        const chatId = payload.chat_id;
+        const messageId = payload.message_id;
+        const reactions = payload.reactions;
+        if (typeof chatId !== 'string' || typeof messageId !== 'string' || !Array.isArray(reactions)) {
+          return;
+        }
+
+        queryClient.setQueryData<MappedMessage[]>(messagesQueryKey(chatId), (old) =>
+          old?.map((message) =>
+            message.id === messageId
+              ? { ...message, reactions: reactions as MappedMessage['reactions'] }
+              : message,
+          ),
+        );
+      },
+      onPollUpdated: (payload) => {
+        const chatId = payload.chat_id;
+        const messageId = payload.message_id;
+        const poll = payload.poll as MappedPoll | undefined;
+        if (typeof chatId !== 'string' || typeof messageId !== 'string' || !poll?.id) {
+          return;
+        }
+
+        const fromQuery = queryClient.getQueryData<MappedPoll>(pollQueryKey(chatId, messageId));
+        const fromMessage = queryClient
+          .getQueryData<MappedMessage[]>(messagesQueryKey(chatId))
+          ?.find((m) => m.id === messageId)?.poll;
+        const priorMine =
+          (fromQuery?.my_option_ids?.length ? fromQuery.my_option_ids : null) ??
+          (fromMessage?.my_option_ids?.length ? fromMessage.my_option_ids : null) ??
+          [];
+
+        const merged: MappedPoll =
+          priorMine.length > 0 && (!poll.my_option_ids || poll.my_option_ids.length === 0)
+            ? {
+                ...poll,
+                my_option_ids: priorMine,
+                options: poll.options.map((opt) => ({
+                  ...opt,
+                  voted_by_me: priorMine.includes(opt.id),
+                })),
+              }
+            : poll;
+
+        // Only write pollQuery when we have viewer state or already had a personalized cache;
+        // otherwise just invalidate so GET loads my_option_ids without seeding [].
+        if (priorMine.length > 0 || (fromQuery?.my_option_ids?.length ?? 0) > 0) {
+          queryClient.setQueryData(pollQueryKey(chatId, messageId), merged);
+        }
+
+        queryClient.setQueryData<MappedMessage[]>(messagesQueryKey(chatId), (old) =>
+          old?.map((message) => {
+            if (message.id !== messageId) return message;
+            if (!message.poll && priorMine.length === 0) {
+              return message;
+            }
+            return { ...message, poll: merged };
+          }),
+        );
+
+        if (priorMine.length === 0 && (!poll.my_option_ids || poll.my_option_ids.length === 0)) {
+          void queryClient.invalidateQueries({ queryKey: pollQueryKey(chatId, messageId) });
+        }
+      },
+    });
+
+    useWsUiStore.getState().setConnecting();
+    wsClient.connect();
+
+    return () => {
+      wsClient.disconnect();
+      useWsUiStore.getState().reset();
+      useTypingStore.setState({ typingUsersByChatId: {} });
+    };
+  }, [ready, queryClient]);
+
+  useEffect(() => {
+    if (!ready || isUiPreviewMode()) return;
+
+    let prevToken = useAuthUiStore.getState().accessToken;
+    const unsub = useAuthUiStore.subscribe((state) => {
+      const token = state.accessToken;
+      if (prevToken && !token) {
+        wsClient.disconnect();
+      } else if (prevToken && token && prevToken !== token) {
+        wsClient.reconnect();
+      }
+      prevToken = token;
+    });
+
+    return unsub;
+  }, [ready]);
+
+  useEffect(() => {
+    if (!ready || isUiPreviewMode()) return;
+    const timer = setInterval(() => {
+      useTypingStore.getState().clearStaleTyping();
+    }, 2_000);
+    return () => clearInterval(timer);
+  }, [ready]);
+
+  useEffect(() => {
+    if (!activeChatId) return;
+    return () => {
+      useTypingStore.getState().clearChatTyping(activeChatId);
+    };
+  }, [activeChatId]);
+}

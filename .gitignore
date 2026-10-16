@@ -1,0 +1,71 @@
+# Env files (secrets)
+.env
+.env.*
+!.env.example
+**/.env
+**/.env.*
+!**/.env.example
+!**/.env.production.example
+!**/.env.lan.example
+
+# Dependencies
+node_modules/
+
+# Build / cache
+.expo/
+dist/
+web-build/
+*.tsbuildinfo
+mobile/metro-*.bundle.js
+mobile/metro-*.hbc
+mobile/dist-*/
+
+# Cursor / Obsidian / docs — локально, не в git (mcp.json — исключение, без секретов)
+.cursor/*
+!.cursor/mcp.json
+obsidian-vault/
+docs/
+
+# Specstory: экспорты сессий часто >100 MB (лимит GitHub на один файл)
+.specstory/history/
+
+# IDE / OS
+.DS_Store
+*.orig.*
+*.pem
+
+# Rust
+target/
+
+# Keys / certs
+*.jks
+*.p8
+*.p12
+*.key
+*.mobileprovision
+
+# Firebase secrets (service account key for server FCM push)
+firebase-service-account*.json
+google-services.json
+
+/steps/
+/Improvements/
+
+# TDLib prebuilt .so (~40MB; `npm run tdlib:fetch-android` in mobile/)
+mobile/android/app/src/main/jniLibs/
+mobile/tdlib-android/jniLibs/
+mobile/.tdlib-fetch-*/
+
+# TDLib iOS build artifacts (`npm run tdlib:build-ios` in mobile/)
+mobile/tdlib-ios/src/
+mobile/tdlib-ios/build/
+mobile/tdlib-ios/include/
+mobile/tdlib-ios/libtdjson.xcframework/
+mobile/tdlib-ios/tdjson/
+
+# Local iOS build outputs / large pod downloads (fetch manually on CI or dev machine)
+mobile/ios/build-xcode/
+mobile/ios/WebRTC.xcframework.zip
+
+# Self-hosted APK (deployed to VPS, not in git)
+server/public/downloads/*.apk

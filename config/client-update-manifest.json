@@ -1,0 +1,10 @@
+{
+  "_readme": "Схема v1. Прод: apkUrl на messenger.startapus.com/downloads/chatus-release.apk (см. RELEASE-APK.md, scripts/deploy-apk-prod.mjs). Запасно: android.driveApkFileId или любой https apkUrl. releaseTag / latestVersionCode — см. RELEASE-APK.md.",
+  "schemaVersion": 1,
+  "android": {
+    "minVersionCode": 1,
+    "latestVersionCode": 2064630344,
+    "releaseTag": "1.0.33",
+    "apkUrl": "https://messenger.startapus.com/downloads/chatus-release.apk"
+  }
+}

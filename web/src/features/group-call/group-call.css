@@ -1,0 +1,1013 @@
+.group-call-banner {
+  padding: 6px 10px 2px;
+  flex-shrink: 0;
+}
+
+.group-call-banner__inner {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border-radius: 10px;
+  background: var(--color-accent);
+  padding: 7px 10px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.18);
+}
+
+.group-call-banner__dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #fff;
+  flex-shrink: 0;
+}
+
+.group-call-banner__text {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.group-call-banner__title {
+  font-size: 13px;
+  font-weight: 700;
+  color: #fff;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.group-call-banner__subtitle {
+  margin-top: 1px;
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.86);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.group-call-banner__cta {
+  border: none;
+  border-radius: 8px;
+  background: #fff;
+  color: var(--color-accent);
+  font-size: 12px;
+  font-weight: 700;
+  padding: 6px 10px;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.group-call-banner__cta:hover {
+  opacity: 0.92;
+}
+
+.group-call-system-message {
+  width: 100%;
+  display: flex;
+  justify-content: flex-end;
+  margin-left: auto;
+  padding: 6px 0;
+  box-sizing: border-box;
+}
+
+.group-call-system-message__card {
+  width: max-content;
+  max-width: min(280px, 100%);
+  margin-left: auto;
+  border-radius: 16px;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  background: rgba(255, 255, 255, 0.96);
+  padding: 10px 12px;
+  box-shadow: 0 3px 8px rgba(138, 150, 168, 0.1);
+  box-sizing: border-box;
+}
+
+.group-call-system-message__row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.group-call-system-message__icon {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: color-mix(in srgb, var(--color-accent) 14%, transparent);
+  color: var(--color-accent);
+  flex-shrink: 0;
+}
+
+.group-call-system-message__text-col {
+  min-width: 0;
+}
+
+.group-call-system-message__text {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.35;
+  font-weight: 500;
+  color: var(--color-text-primary);
+}
+
+.group-call-system-message__duration {
+  margin: 2px 0 0;
+  font-size: 13px;
+  color: var(--color-text-secondary);
+}
+
+.group-call-system-message__join {
+  margin-top: 10px;
+  margin-left: auto;
+  display: block;
+  border: none;
+  border-radius: 10px;
+  background: var(--color-accent);
+  color: #fff;
+  font-size: 13px;
+  font-weight: 700;
+  padding: 8px 16px;
+  cursor: pointer;
+}
+
+.group-call-system-message__meta {
+  margin-top: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 4px;
+  font-size: 11px;
+  color: var(--color-text-secondary);
+}
+
+.group-call-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 2000;
+  display: flex;
+  flex-direction: column;
+  background: #0e1116;
+  color: #fff;
+  padding: 16px 16px 24px;
+}
+
+.group-call-overlay__header {
+  text-align: center;
+  padding: 8px 12px 16px;
+  flex-shrink: 0;
+}
+
+.group-call-overlay--presenting {
+  padding: 8px 8px 16px;
+}
+
+.group-call-overlay--presenting .group-call-overlay__header {
+  padding: 2px 8px 6px;
+}
+
+.group-call-overlay--presenting .group-call-overlay__subtitle {
+  margin: 0;
+  font-size: 13px;
+}
+
+.group-call-overlay__title {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.group-call-overlay__subtitle {
+  margin: 6px 0 0;
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.72);
+}
+
+.group-call-overlay__audio-unlock {
+  margin-top: 12px;
+  padding: 10px 16px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: color-mix(in srgb, var(--color-accent, #5b8def) 88%, #000);
+  color: #fff;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.group-call-overlay__audio-unlock:hover {
+  opacity: 0.92;
+}
+
+.group-call-overlay--audio-blocked .group-call-overlay__audio-unlock {
+  animation: group-call-audio-unlock-pulse 1.6s ease-in-out infinite;
+}
+
+@keyframes group-call-audio-unlock-pulse {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 rgba(91, 141, 239, 0.45);
+  }
+  50% {
+    box-shadow: 0 0 0 8px rgba(91, 141, 239, 0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .group-call-overlay--audio-blocked .group-call-overlay__audio-unlock {
+    animation: none;
+  }
+}
+
+.group-call-stage {
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.group-call-stage__grid {
+  padding: 12px 16px;
+  width: 100%;
+}
+
+.group-call-stage__grid--centered {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.group-call-stage__row {
+  display: flex;
+  gap: 10px;
+}
+
+.group-call-stage__row + .group-call-stage__row {
+  margin-top: 10px;
+}
+
+.group-call-stage__row--centered {
+  justify-content: center;
+}
+
+.group-call-tile {
+  position: relative;
+  flex-shrink: 0;
+}
+
+.group-call-tile--speaking .group-call-tile__inner {
+  border-color: var(--color-accent);
+  box-shadow: 0 0 10px color-mix(in srgb, var(--color-accent) 40%, transparent);
+}
+
+.group-call-tile--dominant .group-call-tile__inner {
+  border-width: 3px;
+  border-color: var(--color-accent);
+  box-shadow: 0 0 14px color-mix(in srgb, var(--color-accent) 55%, transparent);
+}
+
+.group-call-tile--clickable {
+  cursor: pointer;
+}
+
+.group-call-tile--clickable:focus-visible {
+  outline: 2px solid var(--color-accent, #5b8def);
+  outline-offset: 2px;
+}
+
+.group-call-tile__inner {
+  width: 100%;
+  height: 100%;
+  border-radius: 16px;
+  overflow: hidden;
+  background: #1a1f26;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  position: relative;
+}
+
+.group-call-tile__avatar-slot,
+.group-call-tile__video {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.group-call-tile__video--mirror {
+  transform: scaleX(-1);
+}
+
+.group-call-tile__video:not(.group-call-tile__video--mirror) {
+  transform: none;
+}
+
+.group-call-tile__video--contain {
+  object-fit: contain;
+  background: #0a0d12;
+}
+
+.group-call-tile__avatar {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.group-call-tile__initial {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 36px;
+  font-weight: 700;
+  background: color-mix(in srgb, var(--color-accent) 35%, #1a1f26);
+}
+
+.group-call-tile__name-gradient {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 42%;
+  background: linear-gradient(transparent, rgba(0, 0, 0, 0.72));
+  pointer-events: none;
+}
+
+.group-call-tile__name {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  padding: 20px 10px 10px;
+  font-size: 14px;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.group-call-tile__mute-badge {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.55);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+}
+
+.group-call-tile__volume-badge {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  min-width: 32px;
+  height: 24px;
+  padding: 0 8px;
+  border-radius: 12px;
+  background: rgba(0, 0, 0, 0.55);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.group-call-tile-volume {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 4;
+  min-width: 168px;
+  max-width: calc(100% - 16px);
+  padding: 12px 14px;
+  border-radius: 12px;
+  background: rgba(26, 31, 38, 0.96);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45);
+}
+
+.group-call-tile-volume__label {
+  display: block;
+  margin-bottom: 8px;
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.78);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.group-call-tile-volume__slider {
+  width: 100%;
+  accent-color: var(--color-accent, #5b8def);
+  cursor: pointer;
+}
+
+.group-call-tile__fullscreen-btn {
+  position: absolute;
+  bottom: 8px;
+  right: 8px;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(0, 0, 0, 0.55);
+  color: #fff;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 3;
+}
+
+.group-call-tile__fullscreen-btn:hover {
+  background: rgba(0, 0, 0, 0.75);
+}
+
+.group-call-fullscreen {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 0 0 2px;
+}
+
+.group-call-fullscreen__main {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  border-radius: 12px;
+  overflow: hidden;
+  background: #0a0d12;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.group-call-fullscreen__main-inner {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+/* Presentation mode: fill the stage edge-to-edge (no letterboxing). */
+.group-call-fullscreen__main-inner .group-call-tile__video,
+.group-call-fullscreen__main-inner .group-call-tile__video--contain {
+  object-fit: cover;
+  background: #0a0d12;
+}
+
+.group-call-fullscreen__placeholder {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: rgba(255, 255, 255, 0.55);
+  font-size: 14px;
+}
+
+.group-call-fullscreen__self-share {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 24px;
+  text-align: center;
+  color: rgba(255, 255, 255, 0.78);
+  background:
+    radial-gradient(ellipse at center, rgba(91, 141, 239, 0.12), transparent 60%),
+    #0a0d12;
+}
+
+.group-call-fullscreen__self-share svg {
+  width: 40px;
+  height: 40px;
+  opacity: 0.85;
+}
+
+.group-call-fullscreen__self-share-title {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.group-call-fullscreen__self-share-hint {
+  margin: 0;
+  max-width: 360px;
+  font-size: 13px;
+  line-height: 1.4;
+  color: rgba(255, 255, 255, 0.55);
+}
+
+.group-call-fullscreen__exit {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(0, 0, 0, 0.55);
+  color: #fff;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 2;
+}
+
+.group-call-fullscreen__exit:hover {
+  background: rgba(0, 0, 0, 0.75);
+}
+
+.group-call-fullscreen__label {
+  position: absolute;
+  left: 12px;
+  bottom: 12px;
+  padding: 4px 10px;
+  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.55);
+  font-size: 12px;
+  font-weight: 600;
+  z-index: 2;
+  max-width: calc(100% - 24px);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.group-call-fullscreen__strip {
+  flex-shrink: 0;
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding: 0 4px 4px;
+}
+
+.group-call-fullscreen__strip .group-call-tile {
+  flex-shrink: 0;
+}
+
+.group-call-overlay__controls {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding-top: 12px;
+  position: relative;
+}
+
+.group-call-controls-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+}
+
+.group-call-capsule {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  padding: 6px 8px;
+  border-radius: 999px;
+  background: rgba(26, 31, 38, 0.88);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+}
+
+.group-call-capsule__sep {
+  width: 1px;
+  height: 22px;
+  margin: 0 4px;
+  background: rgba(255, 255, 255, 0.12);
+  flex-shrink: 0;
+}
+
+.group-call-action {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  border: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  cursor: pointer;
+  background: transparent;
+  transition: background 0.15s ease, opacity 0.15s ease;
+}
+
+.group-call-action:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.group-call-action--neutral {
+  background: transparent;
+  color: #fff;
+}
+
+.group-call-action--accent {
+  background: color-mix(in srgb, var(--color-accent, #5b8def) 88%, #000);
+  color: #fff;
+}
+
+.group-call-action--accent:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--color-accent, #5b8def) 96%, #000);
+}
+
+.group-call-action--off {
+  background: rgba(0, 0, 0, 0.45);
+  color: rgba(255, 255, 255, 0.55);
+}
+
+.group-call-action--off:hover:not(:disabled) {
+  background: rgba(0, 0, 0, 0.58);
+  color: rgba(255, 255, 255, 0.72);
+}
+
+.group-call-action--danger,
+.group-call-action--hangup {
+  width: 56px;
+  height: 56px;
+  background: #e53935;
+  box-shadow: 0 4px 16px rgba(229, 57, 53, 0.35);
+}
+
+.group-call-action--danger:hover:not(:disabled),
+.group-call-action--hangup:hover:not(:disabled) {
+  background: #ef5350;
+}
+
+.group-call-action--disabled {
+  background: transparent;
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.group-call-action--screen-main {
+  width: 44px;
+  border-radius: 50% 0 0 50%;
+}
+
+.group-call-screen-wrap {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+}
+
+.group-call-screen-cluster {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.group-call-screen-quality-btn {
+  width: 22px;
+  height: 48px;
+  border: none;
+  padding: 0;
+  margin: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  color: rgba(255, 255, 255, 0.78);
+  cursor: pointer;
+  border-radius: 0 50% 50% 0;
+}
+
+.group-call-screen-quality-btn:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
+}
+
+.group-call-screen-quality-btn--disabled,
+.group-call-screen-quality-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.group-call-quality-menu {
+  position: absolute;
+  bottom: calc(100% + 10px);
+  left: 50%;
+  transform: translateX(-50%);
+  min-width: 180px;
+  padding: 6px;
+  border-radius: 12px;
+  background: rgba(26, 31, 38, 0.98);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.5);
+  z-index: 6;
+}
+
+.group-call-quality-menu__item {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  color: #fff;
+  padding: 8px 10px;
+  cursor: pointer;
+  text-align: left;
+}
+
+.group-call-quality-menu__item:hover {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.group-call-quality-menu__item--active {
+  background: color-mix(in srgb, var(--color-accent, #5b8def) 28%, transparent);
+}
+
+.group-call-quality-menu__label {
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.group-call-quality-menu__hint {
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.62);
+}
+
+.group-call-overlay__end-all {
+  width: auto;
+  margin-top: 0;
+  border: none;
+  background: transparent;
+  color: rgba(255, 255, 255, 0.72);
+  font-size: 13px;
+  text-decoration: underline;
+  cursor: pointer;
+  padding: 2px 8px;
+}
+
+.group-call-overlay__end-all:hover {
+  color: #fff;
+}
+
+.conversation-header__call-btn {
+  border: none;
+  background: transparent;
+  color: var(--color-accent);
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.conversation-header__call-btn:hover {
+  background: color-mix(in srgb, var(--color-accent) 12%, transparent);
+}
+
+.group-call-overlay--save-only {
+  background: rgba(14, 17, 22, 0.72);
+  justify-content: center;
+  align-items: center;
+}
+
+.group-call-banner-inline {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin: 0 8px 10px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.group-call-banner-inline--error {
+  background: rgba(229, 57, 53, 0.22);
+}
+
+.group-call-banner-inline--warn {
+  background: rgba(255, 193, 7, 0.16);
+}
+
+.group-call-banner-inline__text {
+  margin: 0;
+  flex: 1;
+  min-width: 0;
+  font-size: 13px;
+  line-height: 1.35;
+  color: rgba(255, 255, 255, 0.92);
+}
+
+.group-call-banner-inline__dismiss {
+  border: none;
+  background: transparent;
+  color: rgba(255, 255, 255, 0.72);
+  font-size: 18px;
+  line-height: 1;
+  cursor: pointer;
+  padding: 0 2px;
+}
+
+.group-call-recording-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin: 10px auto 0;
+  padding: 6px 12px;
+  border-radius: 999px;
+  background: rgba(229, 57, 53, 0.22);
+  border: 1px solid rgba(229, 57, 53, 0.55);
+  color: #ffcdd2;
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.2;
+  pointer-events: none;
+}
+
+.group-call-recording-badge__dot {
+  width: 8px;
+  height: 8px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  background: #e53935;
+  box-shadow: 0 0 0 0 rgba(229, 57, 53, 0.55);
+  animation: group-call-rec-dot-pulse 1.4s ease-out infinite;
+}
+
+/*
+ * Fixed-size box matching capsule action (48×48) so the record timer
+ * sits below without shifting the control row height.
+ */
+.group-call-record-wrap {
+  position: relative;
+  width: 48px;
+  height: 48px;
+}
+
+.group-call-record-label,
+.group-call-record-timer {
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  margin-top: 4px;
+  font-size: 11px;
+  line-height: 1;
+  color: rgba(255, 255, 255, 0.72);
+  white-space: nowrap;
+}
+
+.group-call-record-timer {
+  color: #ff6b6b;
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+}
+
+/* Idle state: neutral, matching the other controls — red is reserved for active recording. */
+.group-call-action--record {
+  background: transparent;
+  color: #fff;
+}
+
+.group-call-action--recording {
+  background: rgba(229, 57, 53, 0.95);
+  color: #fff;
+  position: relative;
+  animation: group-call-rec-blink 1.15s ease-in-out infinite;
+}
+
+.group-call-tile__self-share-placeholder {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  text-align: center;
+  background: #0a0d12;
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 14px;
+  font-weight: 600;
+}
+
+@keyframes group-call-rec-blink {
+  0%,
+  100% {
+    opacity: 1;
+    box-shadow: 0 0 0 0 rgba(229, 57, 53, 0.55);
+  }
+  50% {
+    opacity: 0.52;
+    box-shadow: 0 0 0 7px rgba(229, 57, 53, 0);
+  }
+}
+
+@keyframes group-call-rec-dot-pulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(229, 57, 53, 0.55);
+  }
+  70% {
+    box-shadow: 0 0 0 8px rgba(229, 57, 53, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(229, 57, 53, 0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .group-call-action--recording,
+  .group-call-recording-badge__dot {
+    animation: none;
+  }
+
+  .group-call-action--recording {
+    opacity: 1;
+    box-shadow: inset 0 0 0 2px rgba(255, 255, 255, 0.35);
+  }
+}
+
+.group-call-save-sheet {
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: rgba(0, 0, 0, 0.55);
+}
+
+.group-call-save-sheet__card {
+  width: min(360px, 100%);
+  border-radius: 16px;
+  background: #1a1f26;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.45);
+  padding: 18px 16px 14px;
+}
+
+.group-call-save-sheet__title {
+  margin: 0;
+  font-size: 17px;
+  font-weight: 700;
+  color: #fff;
+}
+
+.group-call-save-sheet__subtitle {
+  margin: 8px 0 0;
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.72);
+  word-break: break-word;
+}
+
+.group-call-save-sheet__error {
+  margin: 10px 0 0;
+  font-size: 13px;
+  color: #ff8a80;
+}
+
+.group-call-save-sheet__actions {
+  margin-top: 16px;
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.group-call-save-sheet__btn {
+  border: none;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 700;
+  padding: 10px 14px;
+  cursor: pointer;
+}
+
+.group-call-save-sheet__btn--ghost {
+  background: transparent;
+  color: rgba(255, 255, 255, 0.78);
+}
+
+.group-call-save-sheet__btn--primary {
+  background: var(--color-accent, #5b8def);
+  color: #fff;
+}

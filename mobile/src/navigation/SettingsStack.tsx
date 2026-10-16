@@ -1,0 +1,89 @@
+import React from 'react';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import {
+  AppearanceSettingsScreen,
+  ChatSettingsScreen,
+  EditProfileScreen,
+  FeedbackComposeScreen,
+  FeedbackListScreen,
+  MyProfileScreen,
+  SettingsScreen,
+  ServicesScreen,
+  TelegramAuthScreen,
+} from '../screens';
+import { MiniAppScreen } from '../screens/MiniAppScreen';
+import { useTheme } from '../contexts/ThemeContext';
+import { getSettingsPalette } from '../screens/settingsPalette';
+import type { SettingsStackParamList } from './types';
+
+const Stack = createNativeStackNavigator<SettingsStackParamList>();
+
+export function SettingsStack() {
+  const { colors, resolvedScheme } = useTheme();
+  return (
+    <Stack.Navigator
+      id={undefined as never}
+      screenOptions={{
+        headerShown: true,
+        headerStyle: { backgroundColor: colors.toolbar },
+        headerShadowVisible: false,
+        headerTintColor: colors.textPrimary,
+        headerTitleStyle: { color: colors.textPrimary, fontWeight: '700' },
+      }}
+    >
+      <Stack.Screen
+        name="SettingsMain"
+        component={SettingsScreen}
+        options={{
+          title: 'Настройки',
+          headerStyle: { backgroundColor: getSettingsPalette(resolvedScheme).background },
+        }}
+      />
+      <Stack.Screen
+        name="EditProfile"
+        component={EditProfileScreen}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name="MyProfile"
+        component={MyProfileScreen}
+        options={{ title: 'Профиль', headerBackTitle: 'Назад' }}
+      />
+      <Stack.Screen
+        name="Appearance"
+        component={AppearanceSettingsScreen}
+        options={{ title: 'Оформление', headerBackTitle: 'Назад' }}
+      />
+      <Stack.Screen
+        name="ChatSettings"
+        component={ChatSettingsScreen}
+        options={{ title: 'Настройки чатов', headerBackTitle: 'Назад' }}
+      />
+      <Stack.Screen
+        name="Services"
+        component={ServicesScreen}
+        options={{ title: 'Сервисы', headerBackTitle: 'Назад' }}
+      />
+      <Stack.Screen
+        name="MiniApp"
+        component={MiniAppScreen}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name="FeedbackList"
+        component={FeedbackListScreen}
+        options={{ headerBackTitle: 'Назад' }}
+      />
+      <Stack.Screen
+        name="FeedbackCompose"
+        component={FeedbackComposeScreen}
+        options={{ headerBackTitle: 'Назад' }}
+      />
+      <Stack.Screen
+        name="TelegramAuth"
+        component={TelegramAuthScreen}
+        options={{ title: 'Telegram', headerBackTitle: 'Назад' }}
+      />
+    </Stack.Navigator>
+  );
+}

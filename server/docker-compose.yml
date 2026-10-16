@@ -1,0 +1,127 @@
+# Chatus backend stack (из каталога server/)
+#
+# Подготовка:
+#   cp .env.example .env
+#   Заполни JWT_SECRET, Loginus, PUBLIC_HOST в редиректах и т.д.
+#   Для продакшена задай POSTGRES_PASSWORD в .env (сильный пароль).
+#   FCM (Android): положи firebase-service-account.json в этот каталог (не в git),
+#   скачай из Firebase Console → Project settings → Service accounts → Generate new private key.
+#
+# Запуск:
+#   docker compose up -d --build
+#
+# Логи:
+#   docker compose logs -f api
+
+services:
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: messenger
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-messenger_local_only_change_me}
+      POSTGRES_DB: messenger
+    ports:
+      - '127.0.0.1:${POSTGRES_PORT:-5433}:5432'
+    volumes:
+      - chatus_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U messenger -d messenger']
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  api:
+    build:
+      # Корень репозитория: в образ кладём config/client-update-manifest.json для GET /client-update-manifest.json
+      context: ..
+      dockerfile: server/Dockerfile
+    restart: unless-stopped
+    # Снаружи только через Traefik (443, 4001, 4002). WS/signaling не публикуем на хост — иначе конфликт с Traefik.
+    ports:
+      - '127.0.0.1:${PORT:-4000}:4000'
+    env_file:
+      - .env
+    environment:
+      # Внутри сети compose хост БД — db (не localhost)
+      DATABASE_URL: postgresql://messenger:${POSTGRES_PASSWORD:-messenger_local_only_change_me}@db:5432/messenger
+      LIVEKIT_HTTP_URL: http://livekit:7880
+      LIVEKIT_URL: ws://livekit:7880
+      # Firebase Admin SDK (FCM direct push). Файл монтируется с хоста (см. volumes).
+      FIREBASE_SERVICE_ACCOUNT_PATH: ${FIREBASE_SERVICE_ACCOUNT_PATH:-/app/firebase-service-account.json}
+      # iOS/Android remote diagnostics → POST /api/client-logs
+      CLIENT_LOGS_DIR: /app/logs/client
+    depends_on:
+      db:
+        condition: service_healthy
+      livekit:
+        condition: service_started
+    volumes:
+      - chatus_uploads:/app/uploads
+      - chatus_client_logs:/app/logs/client
+      # APK на лендинге /downloads/chatus-release.apk — заливай через scripts/deploy-apk-prod.mjs без пересборки образа
+      - ./public/downloads:/app/public/downloads:ro
+      # read-only: ключ не в образе и не в git
+      - ./firebase-service-account.json:/app/firebase-service-account.json:ro
+    labels:
+      - "traefik.enable=true"
+      
+      # 1. HTTP API (Порт 4000) -> Домен messenger.startapus.com
+      - "traefik.http.routers.chatus-api.rule=Host(`messenger.startapus.com`)"
+      - "traefik.http.routers.chatus-api.entrypoints=websecure"
+      - "traefik.http.routers.chatus-api.tls=true"
+      - "traefik.http.routers.chatus-api.tls.certresolver=letsencrypt"
+      - "traefik.http.routers.chatus-api.service=chatus-api-service"
+      - "traefik.http.services.chatus-api-service.loadbalancer.server.port=4000"
+
+      # 2. WebSockets (Порт 4001) -> Домен messenger.startapus.com (Порт 4001 в Traefik)
+      - "traefik.http.routers.chatus-ws.rule=Host(`messenger.startapus.com`)"
+      - "traefik.http.routers.chatus-ws.entrypoints=port4001" # Требуется настроить entrypoint 4001 в Traefik
+      - "traefik.http.routers.chatus-ws.tls=true"
+      - "traefik.http.routers.chatus-ws.tls.certresolver=letsencrypt"
+      - "traefik.http.routers.chatus-ws.service=chatus-ws-service"
+      - "traefik.http.services.chatus-ws-service.loadbalancer.server.port=4001"
+
+      # 3. WebRTC Signaling (Порт 4002) -> Домен messenger.startapus.com (Порт 4002 в Traefik)
+      - "traefik.http.routers.chatus-sig.rule=Host(`messenger.startapus.com`)"
+      - "traefik.http.routers.chatus-sig.entrypoints=port4002" # Требуется настроить entrypoint 4002 в Traefik
+      - "traefik.http.routers.chatus-sig.tls=true"
+      - "traefik.http.routers.chatus-sig.tls.certresolver=letsencrypt"
+      - "traefik.http.routers.chatus-sig.service=chatus-sig-service"
+      - "traefik.http.services.chatus-sig-service.loadbalancer.server.port=4002"
+    networks:
+      - default
+      - traefik-public # Подключение к общей сети Traefik для проксирования и выписки SSL
+
+  livekit:
+    image: livekit/livekit-server:latest
+    restart: unless-stopped
+    command: --config /etc/livekit.yaml --dev
+    volumes:
+      - ./livekit.yaml:/etc/livekit.yaml:ro
+    ports:
+      - '127.0.0.1:7880:7880'
+      - '7881:7881'
+      - '50000-50100:50000-50100/udp'
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.chatus-livekit.rule=Host(`messenger.startapus.com`) && PathPrefix(`/livekit`)"
+      - "traefik.http.routers.chatus-livekit.entrypoints=websecure"
+      - "traefik.http.routers.chatus-livekit.tls=true"
+      - "traefik.http.routers.chatus-livekit.tls.certresolver=letsencrypt"
+      - "traefik.http.routers.chatus-livekit.service=chatus-livekit-service"
+      - "traefik.http.middlewares.chatus-livekit-strip.stripprefix.prefixes=/livekit"
+      - "traefik.http.routers.chatus-livekit.middlewares=chatus-livekit-strip"
+      - "traefik.http.services.chatus-livekit-service.loadbalancer.server.port=7880"
+    networks:
+      - default
+      - traefik-public
+
+volumes:
+  chatus_pgdata:
+  chatus_uploads:
+  chatus_client_logs:
+
+networks:
+  traefik-public:
+    external: true # Внешняя сеть Traefik, созданная на сервере Павла (например, 'traefik-public', 'web' или 'proxy')
