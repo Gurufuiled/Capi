@@ -15,6 +15,7 @@ import type {
   TelegramAlbumMediaItem,
   TelegramMessageRow,
   TelegramMessageStatus,
+  TelegramTextEntity,
   TelegramWebPagePreview,
 } from './types';
 
@@ -91,6 +92,43 @@ export function getReplyToMessageId(raw: Record<string, unknown>): number | null
 
   const messageId = replyTo.message_id;
   return typeof messageId === 'number' && Number.isFinite(messageId) && messageId > 0 ? messageId : null;
+}
+
+const TD_ENTITY_TYPES: Record<string, TelegramTextEntity['type']> = {
+  textEntityTypeBold: 'bold',
+  textEntityTypeItalic: 'italic',
+  textEntityTypeUnderline: 'underline',
+  textEntityTypeStrikethrough: 'strike',
+  textEntityTypeCode: 'code',
+  textEntityTypePre: 'pre',
+  textEntityTypePreCode: 'pre',
+  textEntityTypeUrl: 'url',
+  textEntityTypeTextUrl: 'text_url',
+  textEntityTypeMention: 'mention',
+  textEntityTypeMentionName: 'mention',
+  textEntityTypeHashtag: 'hashtag',
+  textEntityTypeSpoiler: 'spoiler',
+};
+
+function getFormattedEntities(value: unknown): TelegramTextEntity[] | undefined {
+  const text = getNestedRecord(value);
+  const raw = Array.isArray(text?.entities) ? (text?.entities as unknown[]) : [];
+  const out: TelegramTextEntity[] = [];
+  for (const item of raw) {
+    const entity = getNestedRecord(item);
+    const type = getNestedRecord(entity?.type);
+    const kind = typeof type?.['@type'] === 'string' ? TD_ENTITY_TYPES[type['@type'] as string] : undefined;
+    const offset = entity?.offset;
+    const length = entity?.length;
+    if (!kind || typeof offset !== 'number' || typeof length !== 'number' || length <= 0) continue;
+    out.push({
+      offset,
+      length,
+      type: kind,
+      url: kind === 'text_url' && typeof type?.url === 'string' ? type.url : undefined,
+    });
+  }
+  return out.length > 0 ? out : undefined;
 }
 
 function getFormattedText(value: unknown): string {
@@ -682,6 +720,7 @@ export async function mapTdMessage(
       ...base,
       kind: 'text',
       text: getFormattedText(content.text),
+      entities: getFormattedEntities(content.text),
       webPagePreview,
     };
   }

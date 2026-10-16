@@ -5,7 +5,7 @@ export function formatTdlibAuthError(message: string): string {
     return (
       'Неверный облачный пароль.\n\n' +
       'Нужен пароль из официального Telegram: Настройки → Конфиденциальность → ' +
-      'двухэтапная проверка → «Облачный пароль». Это не PIN SIM, не код из SMS и не пароль блокировки Chatus.\n\n' +
+      'двухэтапная проверка → «Облачный пароль». Это не PIN SIM, не код из SMS и не пароль блокировки Capi.\n\n' +
       'Проверьте раскладку клавиатуры и пробелы в начале или в конце пароля.'
     );
   }
@@ -68,7 +68,7 @@ export function describeUnexpectedAuthState(state: string | null | undefined): s
       return 'Этот номер не зарегистрирован в Telegram. Сначала зарегистрируйтесь в официальном приложении Telegram.';
     case 'authorizationStateWaitEmailAddress':
     case 'authorizationStateWaitEmailCode':
-      return 'Telegram запросил подтверждение входа по e-mail — в Chatus это пока не поддерживается. Войдите по QR-коду или отключите проверку по e-mail в настройках Telegram.';
+      return 'Telegram запросил подтверждение входа по e-mail — в Capi это пока не поддерживается. Войдите по QR-коду или отключите проверку по e-mail в настройках Telegram.';
     default:
       return `Не удалось начать вход (состояние: ${state ?? '?'}). Закройте приложение полностью и откройте снова.`;
   }

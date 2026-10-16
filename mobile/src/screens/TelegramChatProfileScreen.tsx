@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import { countWithPlural, SUBSCRIBER_FORMS, MEMBER_FORMS, COMMENT_FORMS } from '../utils/pluralRu';
 import Feather from '@expo/vector-icons/Feather';
 import {
   Alert,
@@ -80,7 +81,6 @@ if (Platform.OS === 'android') {
   UIManager.setLayoutAnimationEnabledExperimental?.(true);
 }
 
-const WALLPAPER_MENU_ICON = require('../../assets/telegram-msg-background-wallpaper-icon.png');
 
 type Route = RouteProp<ChatsStackParamList, 'TelegramChatProfile'>;
 type Nav = NativeStackNavigationProp<ChatsStackParamList, 'TelegramChatProfile'>;
@@ -203,7 +203,8 @@ export function TelegramChatProfileScreen() {
   const chatId = Number.parseInt(telegramChatId, 10);
   const wallpaperKey = `telegram:${telegramChatId}`;
 
-  const { colors: themeColors } = useTheme();
+  const { colors: themeColors, resolvedScheme } = useTheme();
+  const statusBarStyle = resolvedScheme === 'dark' ? 'light-content' : 'dark-content';
   const styles = useMemo(() => createChatProfileScreenStyles(themeColors), [themeColors]);
 
   const [loading, setLoading] = useState(true);
@@ -467,8 +468,8 @@ export function TelegramChatProfileScreen() {
           throwIfTdError(sg);
           if (typeof sg.member_count === 'number' && sg.member_count > 0) {
             memberLine = peer.isChannel
-              ? `${sg.member_count.toLocaleString()} подписчиков`
-              : `${sg.member_count.toLocaleString()} участников`;
+              ? countWithPlural(sg.member_count, SUBSCRIBER_FORMS)
+              : countWithPlural(sg.member_count, MEMBER_FORMS);
           }
           try {
             const sgf = (await tdlibClient.send({
@@ -488,7 +489,7 @@ export function TelegramChatProfileScreen() {
           })) as Record<string, unknown>;
           throwIfTdError(bg);
           if (typeof bg.member_count === 'number' && bg.member_count > 0) {
-            memberLine = `${bg.member_count.toLocaleString()} участников`;
+            memberLine = countWithPlural(bg.member_count, MEMBER_FORMS);
           }
         }
 
@@ -552,6 +553,79 @@ export function TelegramChatProfileScreen() {
     () => telegramRowsToProfileBuckets(historyRows, displayName),
     [historyRows, displayName],
   );
+
+  // Подгрузка вкладок медиа постранично (по 100) вместо жёсткого лимита первой загрузки.
+  const [loadingMoreTab, setLoadingMoreTab] = useState(false);
+  const [exhaustedTabs, setExhaustedTabs] = useState<Partial<Record<ProfileTabKey, true>>>({});
+  const historyRowsForPaging = useRef(historyRows);
+  historyRowsForPaging.current = historyRows;
+
+  const handleLoadMoreTab = useCallback(() => {
+    const tab = activeTab;
+    if (loadingMoreTab || exhaustedTabs[tab] || !Number.isFinite(chatId)) return;
+    const filterByTab: Record<ProfileTabKey, string> = {
+      media: 'searchMessagesFilterPhotoAndVideo',
+      files: 'searchMessagesFilterDocument',
+      voice: 'searchMessagesFilterVoiceAndVideoNote',
+      links: 'searchMessagesFilterUrl',
+    };
+    const kindsByTab: Record<ProfileTabKey, string[]> = {
+      media: ['image', 'video', 'album'],
+      files: ['file'],
+      voice: ['voice', 'video_note'],
+      links: [],
+    };
+    setLoadingMoreTab(true);
+    void (async () => {
+      try {
+        await ensureReady();
+        const tabRows = historyRowsForPaging.current.filter((row) =>
+          tab === 'links' ? row.webPagePreview != null : kindsByTab[tab].includes(row.kind),
+        );
+        const cursor = tabRows.reduce(
+          (min, row) => (row.messageId > 0 && (min === 0 || row.messageId < min) ? row.messageId : min),
+          0,
+        );
+        const res = (await tdlibClient.send({
+          '@type': 'searchChatMessages',
+          chat_id: chatId,
+          query: '',
+          sender_id: null,
+          from_message_id: cursor,
+          offset: 0,
+          limit: 100,
+          filter: { '@type': filterByTab[tab] },
+          message_thread_id: 0,
+        })) as Record<string, unknown>;
+        throwIfTdError(res);
+        const raw = (Array.isArray(res.messages) ? res.messages : []).filter(
+          (item): item is Record<string, unknown> => item != null && typeof item === 'object',
+        );
+        if (raw.length === 0) {
+          setExhaustedTabs((prev) => ({ ...prev, [tab]: true }));
+          return;
+        }
+        const lastRead = await loadLastReadOutboxMessageId(chatId);
+        const mapped = await mapTdMessages(raw, lastRead, 4, {
+          mediaLocalOnly: true,
+          photoGridThumbnail: true,
+        });
+        for (const { fileId, priority } of planProfileMediaDownloads(mapped)) {
+          scheduleTdlibFileDownload(fileId, priority);
+        }
+        setHistoryRows((prev) => {
+          const byId = new Map(prev.map((row) => [row.id, row]));
+          for (const row of mapped) byId.set(row.id, row);
+          return [...byId.values()].sort((a, b) => b.dateMs - a.dateMs);
+        });
+        if (raw.length < 100) setExhaustedTabs((prev) => ({ ...prev, [tab]: true }));
+      } catch {
+        Alert.alert('Не удалось загрузить', 'Проверьте соединение и попробуйте ещё раз.');
+      } finally {
+        setLoadingMoreTab(false);
+      }
+    })();
+  }, [activeTab, chatId, ensureReady, exhaustedTabs, loadingMoreTab]);
 
   // Открыли медиа — докачиваем полный размер (фото по соседству тоже, чтобы листание было мгновенным).
   // Плитки сетки обходятся миниатюрами, поэтому полные файлы без этого не качаются вовсе.
@@ -639,7 +713,7 @@ export function TelegramChatProfileScreen() {
   const handleStartCallPress = useCallback(() => {
     Alert.alert(
       'Звонок',
-      'Звонки Chatus (WebRTC) доступны в обычных чатах. В Telegram-диалоге используйте звонки в приложении Telegram.',
+      'Звонки Capi (WebRTC) доступны в обычных чатах. В Telegram-диалоге используйте звонки в приложении Telegram.',
     );
   }, []);
 
@@ -826,14 +900,14 @@ export function TelegramChatProfileScreen() {
     const items: AnchoredPopoverMenuItem[] = [
       {
         key: 'change-wallpaper',
-        label: 'Изменить обои',
-        iconImage: WALLPAPER_MENU_ICON,
-        ...{ label: 'Оформление чата' },
+        label: 'Оформление чата',
+        capiIcon: 'palette',
       },
       {
         key: 'delete-chat',
         label: isBroadcastChannel ? 'Покинуть канал' : isGroupPeer ? 'Выйти из чата' : 'Удалить чат',
         icon: 'trash-2',
+        danger: true,
       },
     ];
     if (peerUserId != null) {
@@ -960,7 +1034,7 @@ export function TelegramChatProfileScreen() {
 
   return (
     <View style={styles.screen}>
-      <StatusBar barStyle="dark-content" />
+      <StatusBar barStyle={statusBarStyle} />
 
       <Animated.ScrollView
         bounces
@@ -1009,6 +1083,9 @@ export function TelegramChatProfileScreen() {
           onOpenMedia={setSelectedMediaIndex}
           onOpenVideoNote={setFloatingVideoNote}
           onOpenActionMenu={openActionMenu}
+          canLoadMore={!exhaustedTabs[activeTab]}
+          loadingMore={loadingMoreTab}
+          onLoadMore={handleLoadMoreTab}
         />
       </Animated.ScrollView>
 
@@ -1042,7 +1119,7 @@ export function TelegramChatProfileScreen() {
           style={styles.editScreen}
           behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         >
-          <StatusBar barStyle="dark-content" />
+          <StatusBar barStyle={statusBarStyle} />
           <View style={[styles.editTopBar, { paddingTop: Math.max(insets.top + 8, 18) }]}>
             <Pressable
               onPress={closeEditContact}

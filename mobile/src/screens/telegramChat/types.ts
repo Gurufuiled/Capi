@@ -39,11 +39,21 @@ export type TelegramWebPagePreview = {
   photoFileId?: number;
 };
 
+/** Форматирование текста TDLib (`textEntity`): смещения в единицах UTF-16, как в JS-строках. */
+export type TelegramTextEntity = {
+  offset: number;
+  length: number;
+  type: 'bold' | 'italic' | 'underline' | 'strike' | 'code' | 'pre' | 'url' | 'text_url' | 'mention' | 'hashtag' | 'spoiler';
+  url?: string;
+};
+
 export type TelegramMessageRow = {
   id: string;
   messageId: number;
   kind: TelegramMessageKind;
   text: string;
+  /** Форматирование `text` (жирный, ссылки, код и т.д.). */
+  entities?: TelegramTextEntity[];
   outgoing: boolean;
   dateMs: number;
   status: TelegramMessageStatus;

@@ -15,6 +15,8 @@ type MessageTextBubbleBodyProps = {
   fillWidth?: boolean;
   /** Reserve a wider footer for channel view counters. */
   hasViews?: boolean;
+  /** Ограничение числа строк (длинные посты каналов с «Читать далее»). */
+  numberOfLines?: number;
 };
 
 /**
@@ -30,6 +32,7 @@ export function MessageTextBubbleBody({
   meta,
   fillWidth = false,
   hasViews = false,
+  numberOfLines,
 }: MessageTextBubbleBodyProps) {
   const body = children ?? text;
   const minimumMetaWidth = hasViews ? 82 : 48;
@@ -44,7 +47,10 @@ export function MessageTextBubbleBody({
         styles.positionedContent,
       ]}
     >
-      <Text style={[textStyle, styles.messageText, { paddingRight: reservedMetaWidth }]}>
+      <Text
+        numberOfLines={numberOfLines}
+        style={[textStyle, styles.messageText, { paddingRight: reservedMetaWidth }]}
+      >
         {body}
       </Text>
       <View

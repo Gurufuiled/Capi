@@ -69,6 +69,37 @@ export function previewForUnsupported(kind: string | undefined): string {
       return 'Файл';
     case 'messageSticker':
       return 'Стикер';
+    case 'messageAnimation':
+      return 'GIF';
+    case 'messagePoll':
+      return 'Опрос · откройте в Telegram';
+    case 'messageLocation':
+    case 'messageVenue':
+      return 'Геопозиция';
+    case 'messageContact':
+      return 'Контакт';
+    case 'messageCall':
+      return 'Звонок';
+    case 'messagePinMessage':
+      return 'Сообщение закреплено';
+    case 'messageChatAddMembers':
+      return 'В чат добавлены участники';
+    case 'messageChatJoinByLink':
+    case 'messageChatJoinByRequest':
+      return 'Новый участник вступил в чат';
+    case 'messageChatDeleteMember':
+      return 'Участник покинул чат';
+    case 'messageChatChangeTitle':
+      return 'Название чата изменено';
+    case 'messageChatChangePhoto':
+      return 'Фото чата изменено';
+    case 'messageChatDeletePhoto':
+      return 'Фото чата удалено';
+    case 'messageBasicGroupChatCreate':
+    case 'messageSupergroupChatCreate':
+      return 'Чат создан';
+    case 'messageScreenshotTaken':
+      return 'Сделан снимок экрана';
     default:
       return 'Сообщение';
   }

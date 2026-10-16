@@ -1,4 +1,5 @@
-import React, { useMemo } from 'react';
+import React, { useMemo } from 'react';
+import { countWithPlural, SUBSCRIBER_FORMS, MEMBER_FORMS, COMMENT_FORMS } from '../utils/pluralRu';
 import {
   ActivityIndicator,
   Modal,
@@ -65,7 +66,7 @@ export function TelegramForwardSheet({
               const meta =
                 dialog.lastMessagePreview?.trim() ||
                 (dialog.chatType === 'channel' && dialog.memberCount != null
-                  ? `${dialog.memberCount.toLocaleString()} подписчиков`
+                  ? countWithPlural(dialog.memberCount, SUBSCRIBER_FORMS)
                   : 'Нажмите, чтобы переслать сюда');
               return (
                 <Pressable

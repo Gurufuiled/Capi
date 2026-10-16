@@ -14,7 +14,8 @@ import { tdlibMessagePreviewFromContent } from '../services/telegramTdlibNotific
 import { getNestedRecord } from '../screens/telegramChat/tdlibMapping';
 import { telegramAccountStore } from '../stores/telegramAccountStore';
 import { telegramUiStore } from '../stores/telegramUiStore';
-import { syncChatusPhoneFromTelegramAuth } from '../services/telegramChatusPhoneSync';
+import { mapTdConnectionState, telegramConnectionStore } from '../stores/telegramConnectionStore';
+import { runTelegramPostLoginSync } from '../services/telegramSyncGate';
 import { logTdlibEvent, scheduleTdlibLogFlush } from '../services/clientRemoteLog';
 
 /**
@@ -49,12 +50,12 @@ export function TelegramTdlibNotificationListener() {
     unsubAuth = telegramAccountStore.subscribe((state, prev) => {
       if (state.authStatus === 'ready' && prev?.authStatus !== 'ready') {
         void tryRegisterFcm();
-        syncChatusPhoneFromTelegramAuth().catch(console.error);
+        runTelegramPostLoginSync().catch(console.error);
       }
     });
     if (telegramAccountStore.getState().authStatus === 'ready') {
       void tryRegisterFcm();
-      syncChatusPhoneFromTelegramAuth().catch(console.error);
+      runTelegramPostLoginSync().catch(console.error);
     }
 
     let persistAuthDebounce: ReturnType<typeof setTimeout> | null = null;
@@ -68,6 +69,12 @@ export function TelegramTdlibNotificationListener() {
 
     unsubTd = tdlibClient.subscribe((update) => {
       try {
+        if (update['@type'] === 'updateConnectionState') {
+          const connState = update['state'] as Record<string, unknown> | undefined;
+          telegramConnectionStore
+            .getState()
+            .setConnection(mapTdConnectionState(connState?.['@type'] as string | undefined));
+        }
         // Синхронизируем стор при получении push-события об изменении авторизации
         if (update['@type'] === 'updateAuthorizationState') {
           const authState = update['authorization_state'] as Record<string, unknown> | undefined;
@@ -93,7 +100,7 @@ export function TelegramTdlibNotificationListener() {
               if (store.authStatus !== 'ready') {
                 store.setAuthStatus('ready');
                 scheduleAuthPersist();
-                syncChatusPhoneFromTelegramAuth().catch(console.error);
+                runTelegramPostLoginSync().catch(console.error);
               }
               break;
             case 'authorizationStateWaitCode':

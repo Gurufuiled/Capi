@@ -46,6 +46,8 @@ import { ImageBubble } from '../components/ImageBubble';
 import { InputBar, type FilePickResult, type MediaAlbumPickResult, type MediaPickResult } from '../components/InputBar';
 import { TelegramMediaAlbumBubble } from '../components/TelegramMediaAlbumBubble';
 import { MessageTextBubbleBody } from '../components/MessageTextBubbleBody';
+import { renderTelegramRichText } from './telegramChat/telegramRichText';
+import { TelegramConnectionBanner } from '../components/TelegramConnectionBanner';
 import { ForwardHeader } from '../components/ForwardHeader';
 import { MessageTimeStatus } from '../components/MessageTimeStatus';
 import { ReplySwipeWrapper } from '../components/ReplySwipeWrapper';
@@ -163,6 +165,7 @@ import {
   tdlibDeleteMessages,
   tdlibForwardMessages,
   tdlibUnpinChatMessage,
+  tdlibSetChatMuted,
   tdlibAddMessageReaction,
   tdlibRemoveMessageReaction,
   toTelegramReactionEmoji,
@@ -303,6 +306,15 @@ export function TelegramChatScreen() {
   const [pinnedMessageId, setPinnedMessageId] = useState<number | null>(null);
   const [selectedTelegramMessageIds, setSelectedTelegramMessageIds] = useState<string[]>([]);
   const [canPost, setCanPost] = useState(true);
+  /** Почему в группе нельзя писать (бан, ограничение, не участник); null — можно. */
+  const [writeBlockReason, setWriteBlockReason] = useState<string | null>(null);
+  const [chatMuted, setChatMuted] = useState(false);
+  /** Медленный режим группы: интервал между сообщениями и момент, когда можно писать снова. */
+  const [slowModeDelaySec, setSlowModeDelaySec] = useState(0);
+  const [slowModeUntilMs, setSlowModeUntilMs] = useState(0);
+  const [slowModeNow, setSlowModeNow] = useState(() => Date.now());
+  /** Развёрнутые длинные посты канала. */
+  const [expandedPostIds, setExpandedPostIds] = useState<Record<string, true>>({});
   const [memberCount, setMemberCount] = useState<number | null>(null);
   const [channelMemberStatus, setChannelMemberStatus] = useState<string | null>(null);
   /** Чат обсуждения канала (`getSupergroupFullInfo.linked_chat_id`), если у сообщения нет `reply_in_chat_id`. */
@@ -984,15 +996,26 @@ export function TelegramChatScreen() {
 
   const handlePinnedBannerClose = useCallback(() => {
     if (pinnedMessageId == null || !Number.isFinite(chatId)) return;
-    void (async () => {
-      try {
-        await ensureReady();
-        await tdlibUnpinChatMessage(chatId, pinnedMessageId);
-        setPinnedMessageId(null);
-      } catch (err) {
-        Alert.alert('Открепить', err instanceof Error ? err.message : String(err));
-      }
-    })();
+    // Открепление видно всем участникам, поэтому переспрашиваем.
+    Alert.alert('Открепить сообщение?', 'Оно перестанет быть закреплённым для всех участников.', [
+      { text: 'Отмена', style: 'cancel' },
+      {
+        text: 'Открепить',
+        style: 'destructive',
+        onPress: () => {
+          void (async () => {
+            try {
+              await ensureReady();
+              await tdlibUnpinChatMessage(chatId, pinnedMessageId);
+              setPinnedMessageId(null);
+            } catch (err) {
+              Alert.alert('Не удалось открепить', 'Возможно, у вас нет прав на это действие.');
+              if (__DEV__) console.warn('[unpin]', err);
+            }
+          })();
+        },
+      },
+    ]);
   }, [chatId, ensureReady, pinnedMessageId]);
 
   const openTelegramChatProfile = useCallback(() => {
@@ -1298,6 +1321,9 @@ export function TelegramChatScreen() {
         const perms = getNestedRecord(chat.permissions);
         if (!cancelled) {
           setCanPost(!isBroadcastChannel || perms?.can_send_basic_messages !== false);
+          setWriteBlockReason(null);
+          const notif = getNestedRecord(chat.notification_settings);
+          setChatMuted(typeof notif?.mute_for === 'number' && notif.mute_for > 0);
         }
         const typeKind = type?.['@type'];
         if (typeKind === 'chatTypeSupergroup') {
@@ -1314,6 +1340,53 @@ export function TelegramChatScreen() {
             if (!cancelled && sg.status != null) {
               const statusType = (sg.status as Record<string, unknown>)['@type'];
               if (typeof statusType === 'string') setChannelMemberStatus(statusType);
+            }
+            if (!cancelled && !isBroadcastChannel) {
+              // Права на запись в группе: бан, ограничения и «только админы» вместо рабочего поля ввода.
+              const st = getNestedRecord(sg.status);
+              const stType = st?.['@type'];
+              let reason: string | null = null;
+              if (stType === 'chatMemberStatusBanned') {
+                reason = 'Вы заблокированы в этой группе';
+              } else if (stType === 'chatMemberStatusLeft') {
+                reason = 'Вы не состоите в этой группе';
+              } else if (stType === 'chatMemberStatusRestricted') {
+                const restricted = getNestedRecord(st?.permissions);
+                if (st?.is_member === false) {
+                  reason = 'Вы не состоите в этой группе';
+                } else if (restricted?.can_send_basic_messages === false) {
+                  reason = 'Вам запрещено писать в этой группе';
+                }
+              } else if (stType === 'chatMemberStatusMember' && perms?.can_send_basic_messages === false) {
+                reason = 'Писать в этой группе могут только администраторы';
+              }
+              setWriteBlockReason(reason);
+              if (reason) setCanPost(false);
+
+              // Медленный режим действует только на обычных участников.
+              const isAdminStatus =
+                stType === 'chatMemberStatusCreator' || stType === 'chatMemberStatusAdministrator';
+              if (isAdminStatus) {
+                setSlowModeDelaySec(0);
+                setSlowModeUntilMs(0);
+              } else {
+                try {
+                  const sgSlow = (await tdlibClient.send({
+                    '@type': 'getSupergroupFullInfo',
+                    supergroup_id: sgId,
+                  })) as Record<string, unknown>;
+                  throwIfTdError(sgSlow);
+                  const delay = typeof sgSlow.slow_mode_delay === 'number' ? sgSlow.slow_mode_delay : 0;
+                  const left =
+                    typeof sgSlow.slow_mode_delay_left === 'number' ? sgSlow.slow_mode_delay_left : 0;
+                  if (!cancelled) {
+                    setSlowModeDelaySec(delay);
+                    setSlowModeUntilMs(left > 0 ? Date.now() + left * 1000 : 0);
+                  }
+                } catch {
+                  if (!cancelled) setSlowModeDelaySec(0);
+                }
+              }
             }
             if (isBroadcastChannel && !cancelled) {
               try {
@@ -1642,6 +1715,11 @@ export function TelegramChatScreen() {
     async (text: string) => {
       const trimmed = text.trim();
       if (!trimmed || !Number.isFinite(chatId)) return;
+      if (slowModeDelaySec > 0 && slowModeUntilMs > Date.now()) {
+        const left = Math.ceil((slowModeUntilMs - Date.now()) / 1000);
+        Alert.alert('Медленный режим', `Следующее сообщение можно отправить через ${left} с.`);
+        return;
+      }
       onComposerMessageSent();
       const tempId = -Date.now();
       const activeReplyToMessageId = replyToMessageId;
@@ -1685,6 +1763,9 @@ export function TelegramChatScreen() {
             patchTelegramDialogOutgoingPreview(chatId, trimmed, mapped.dateMs);
             markOpenedChatRead();
           }
+          if (slowModeDelaySec > 0) {
+            setSlowModeUntilMs(Date.now() + slowModeDelaySec * 1000);
+          }
         }
       } catch (err) {
         const message = err instanceof Error ? err.message : String(err);
@@ -1692,8 +1773,40 @@ export function TelegramChatScreen() {
         Alert.alert('Не удалось отправить', message);
       }
     },
-    [chatId, ensureReady, markOpenedChatRead, onComposerMessageSent, replyToMessageId],
+    [
+      chatId,
+      ensureReady,
+      markOpenedChatRead,
+      onComposerMessageSent,
+      replyToMessageId,
+      slowModeDelaySec,
+      slowModeUntilMs,
+    ],
   );
+
+  useEffect(() => {
+    if (slowModeUntilMs <= Date.now()) return;
+    setSlowModeNow(Date.now());
+    const id = setInterval(() => setSlowModeNow(Date.now()), 1000);
+    return () => clearInterval(id);
+  }, [slowModeUntilMs]);
+
+  const slowModeBanner = useMemo(() => {
+    if (slowModeDelaySec <= 0) return null;
+    if (slowModeUntilMs > slowModeNow) {
+      const left = Math.max(1, Math.ceil((slowModeUntilMs - slowModeNow) / 1000));
+      const mm = Math.floor(left / 60);
+      const ss = String(left % 60).padStart(2, '0');
+      return `Медленный режим: следующее сообщение через ${mm}:${ss}`;
+    }
+    const every =
+      slowModeDelaySec >= 3600
+        ? `${Math.round(slowModeDelaySec / 3600)} ч`
+        : slowModeDelaySec >= 60
+          ? `${Math.round(slowModeDelaySec / 60)} мин`
+          : `${slowModeDelaySec} с`;
+    return `Медленный режим: одно сообщение раз в ${every}`;
+  }, [slowModeDelaySec, slowModeNow, slowModeUntilMs]);
 
   const sendVoice = useCallback(
     async (result: VoiceRecordingResult) => {
@@ -2060,6 +2173,26 @@ export function TelegramChatScreen() {
 
   const renderMessageRow = useCallback(
     ({ item, index }: { item: TelegramMessageRow; index: number }) => {
+      if (item.kind === 'service') {
+        // Служебные и неподдерживаемые сообщения («Иван вступил в группу», «Опрос», «Геопозиция»): центральная пилюля.
+        return (
+          <View style={{ alignItems: 'center', marginVertical: 6, paddingHorizontal: 20 }}>
+            <View
+              style={{
+                backgroundColor: colors.inputBackground,
+                borderRadius: 14,
+                paddingHorizontal: 12,
+                paddingVertical: 5,
+                maxWidth: '90%',
+              }}
+            >
+              <Text style={{ fontSize: 13, lineHeight: 18, color: colors.textSecondary, textAlign: 'center' }}>
+                {item.text}
+              </Text>
+            </View>
+          </View>
+        );
+      }
       const isMe = item.outgoing;
       const reactionsNode = item.reactions && item.reactions.length > 0 ? (
         <MessageReactionInline
@@ -2963,6 +3096,10 @@ export function TelegramChatScreen() {
         ? '\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0' 
         : '\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0';
 
+      // Длинные посты каналов сворачиваем до 12 строк с «Читать далее».
+      const collapsePost =
+        isChannel && (item.text?.length ?? 0) > 700 && !expandedPostIds[item.id] && !normalizedSearchQuery;
+
       const textBubbleContent =
         normalizedSearchQuery && (item.text?.trim() ?? '').length > 0 ? (
           <View style={{ position: 'relative', alignSelf: 'stretch' }}>
@@ -2977,13 +3114,33 @@ export function TelegramChatScreen() {
             <View style={{ position: 'absolute', bottom: 0, right: 0 }}>{metaNode}</View>
           </View>
         ) : (
+          <>
           <MessageTextBubbleBody
             text={item.text ?? ''}
             textStyle={outgoingMessageTextStyle}
             rowStyle={styles.bubbleContentRow}
             hasViews={viewCountFormatted != null}
             meta={metaNode}
-          />
+            numberOfLines={collapsePost ? 12 : undefined}
+          >
+            {item.entities && item.entities.length > 0
+              ? renderTelegramRichText(item.text ?? '', item.entities, outgoingMessageTextStyle, {
+                  link: isMe ? chatTheme.bubbleMeText : colors.link,
+                  codeBackground: isMe ? 'rgba(255,255,255,0.18)' : colors.inputBackground,
+                })
+              : undefined}
+          </MessageTextBubbleBody>
+          {collapsePost ? (
+            <Pressable
+              onPress={() => setExpandedPostIds((prev) => ({ ...prev, [item.id]: true }))}
+              style={{ minHeight: 40, justifyContent: 'center', paddingHorizontal: 4 }}
+            >
+              <Text style={{ fontSize: 14, fontWeight: '700', color: isMe ? chatTheme.bubbleMeText : colors.accent }}>
+                Читать далее
+              </Text>
+            </Pressable>
+          ) : null}
+          </>
         );
 
       const webPageNode = item.webPagePreview ? (
@@ -3077,6 +3234,7 @@ export function TelegramChatScreen() {
       highlightedMessageId,
       handleMessageRowPress,
       handleToggleReaction,
+      expandedPostIds,
     ],
   );
 
@@ -3262,6 +3420,14 @@ export function TelegramChatScreen() {
               {loadingOlder ? (
                 <Text style={styles.loadingOlder}>Загружаем старые сообщения...</Text>
               ) : null}
+              {!telegramSelectionMode ? <TelegramConnectionBanner variant="inline" /> : null}
+              {!telegramSelectionMode && canPost && slowModeBanner ? (
+                <Text
+                  style={{ textAlign: 'center', fontSize: 12, lineHeight: 16, color: colors.textSecondary, paddingBottom: 6 }}
+                >
+                  {slowModeBanner}
+                </Text>
+              ) : null}
               {telegramSelectionMode ? (
                 <View
                   style={[styles.selectionBatchWrap, { paddingBottom: Math.max(insets.bottom, 12) }]}
@@ -3372,27 +3538,29 @@ export function TelegramChatScreen() {
                             .then(() => setChannelMemberStatus('chatMemberStatusMember'))
                             .catch(() => Alert.alert('Ошибка', 'Не удалось подписаться на канал'));
                         }}
-                        style={{ paddingHorizontal: 24, paddingVertical: 8 }}
+                        style={{ paddingHorizontal: 24, minHeight: 44, justifyContent: 'center' }}
                       >
-                        <Text style={[styles.readOnlyText, { color: colors.accent, fontWeight: '500' }]}>
+                        <Text style={[styles.readOnlyText, { color: colors.accent, fontWeight: '600' }]}>
                           Подписаться
                         </Text>
                       </Pressable>
                     ) : (
                       <Pressable 
                         onPress={() => {
-                          const nextMute = true; // Placeholder for toggle mute
-                          Alert.alert('Звук', 'Переключение уведомлений будет реализовано позже.');
+                          const nextMute = !chatMuted;
+                          void tdlibSetChatMuted(chatId, nextMute)
+                            .then(() => setChatMuted(nextMute))
+                            .catch(() => Alert.alert('Ошибка', 'Не удалось изменить уведомления'));
                         }}
-                        style={{ paddingHorizontal: 24, paddingVertical: 8 }}
+                        style={{ paddingHorizontal: 24, minHeight: 44, justifyContent: 'center' }}
                       >
-                        <Text style={[styles.readOnlyText, { color: colors.textSecondary }]}>
-                          Убрать звук
+                        <Text style={[styles.readOnlyText, { color: colors.accent, fontWeight: '600' }]}>
+                          {chatMuted ? 'Включить звук' : 'Выключить звук'}
                         </Text>
                       </Pressable>
                     )
                   ) : (
-                    <Text style={styles.readOnlyText}>Только для чтения</Text>
+                    <Text style={styles.readOnlyText}>{writeBlockReason ?? 'Только для чтения'}</Text>
                   )}
                 </View>
               )}

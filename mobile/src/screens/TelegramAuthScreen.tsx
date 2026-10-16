@@ -43,8 +43,7 @@ import {
   telegramAccountStore,
   type TelegramAuthStatus,
 } from "../stores/telegramAccountStore";
-import { requestContactsAndSync } from "../services/ContactSyncService";
-import { syncChatusPhoneFromTelegramAuth } from "../services/telegramChatusPhoneSync";
+import { runTelegramPostLoginSync } from "../services/telegramSyncGate";
 import {
   getAuthWizardStepIndex,
   resolveAuthWizardStep,
@@ -66,7 +65,7 @@ const WIZARD_STEPS: AuthWizardStep[] = ["phone", "code", "password"];
 const STEP_COPY: Record<AuthWizardStep, { title: string; subtitle: string }> = {
   phone: {
     title: "Номер телефона",
-    subtitle: "Отдельный аккаунт от Chatus. Код придёт в Telegram или по SMS.",
+    subtitle: "Отдельный аккаунт от Capi. Код придёт в Telegram или по SMS.",
   },
   code: {
     title: "Код подтверждения",
@@ -233,8 +232,7 @@ export function TelegramAuthScreen() {
       telegramAccountStore.getState().setAuthStatus("ready");
       telegramAccountStore.getState().setTelegramUserId(0);
       await telegramAccountStore.getState().persistSnapshot();
-      syncChatusPhoneFromTelegramAuth().catch(console.error);
-      requestContactsAndSync().catch(console.error);
+      runTelegramPostLoginSync().catch(console.error);
 
       if (navigation.canGoBack()) {
         navigation.popToTop();
@@ -285,8 +283,7 @@ export function TelegramAuthScreen() {
       if (t === "authorizationStateReady") {
         telegramAccountStore.getState().setAuthStatus("ready");
         await telegramAccountStore.getState().persistSnapshot();
-        syncChatusPhoneFromTelegramAuth().catch(console.error);
-        requestContactsAndSync().catch(console.error);
+        runTelegramPostLoginSync().catch(console.error);
         return "ready";
       }
       const current = telegramAccountStore.getState().authStatus;
@@ -1170,7 +1167,7 @@ export function TelegramAuthScreen() {
           </>
         ) : (
           <Text style={[styles.subtitle, { color: ui.hint }]}>
-            Аккаунт Telegram отдельный от Chatus.
+            Аккаунт Telegram отдельный от Capi.
           </Text>
         )}
 
@@ -1320,9 +1317,9 @@ export function TelegramAuthScreen() {
               ]}
             >
               {busy && status === "waiting_code" ? (
-                <ActivityIndicator color="#fff" />
+                <ActivityIndicator color={colors.onAccent} />
               ) : (
-                <Text style={styles.primaryBtnText}>Продолжить</Text>
+                <Text style={[styles.primaryBtnText, { color: colors.onAccent }]}>Продолжить</Text>
               )}
             </Pressable>
           </>

@@ -18,7 +18,7 @@ type Props = {
   preparing: boolean;
   canSendPhone: boolean;
   phonePrimary: boolean;
-  colors: { accent: string };
+  colors: { accent: string; onAccent: string };
   ui: { placeholder: string };
   inputFieldStyle: StyleProp<TextStyle>;
 };
@@ -94,9 +94,9 @@ export const TelegramAuthPhoneFields = memo(function TelegramAuthPhoneFields({
         ]}
       >
         {busy && phonePrimary ? (
-          <ActivityIndicator color="#fff" />
+          <ActivityIndicator color={colors.onAccent} />
         ) : (
-          <Text style={styles.primaryBtnText}>Получить код</Text>
+          <Text style={[styles.primaryBtnText, { color: colors.onAccent }]}>Получить код</Text>
         )}
       </Pressable>
     </>

@@ -22,6 +22,7 @@ import { authService, type AuthSession } from './src/services/AuthService';
 import { uiStore } from './src/stores/uiStore';
 import { telegramAccountStore } from './src/stores/telegramAccountStore';
 import { TelegramTdlibNotificationListener } from './src/components/TelegramTdlibNotificationListener';
+import { TelegramSyncConsentModal } from './src/components/TelegramSyncConsentModal';
 import { ensureAndroidPushChannels } from './src/services/pushNotificationsService';
 import { prefetchMessageTimeFormat } from './src/utils/formatMessageTime';
 

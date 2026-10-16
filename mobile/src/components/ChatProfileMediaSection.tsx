@@ -83,6 +83,10 @@ type ChatProfileMediaSectionProps = {
   onOpenActionMenu: (messageId: string, event: GestureResponderEvent) => void;
   /** LineSync line id (chat id) — peer-first thumbnails in the media grid. */
   peerFirstLineId?: string | null;
+  /** Есть ли ещё элементы на активной вкладке (показывает кнопку «Показать ещё»). */
+  canLoadMore?: boolean;
+  loadingMore?: boolean;
+  onLoadMore?: () => void;
 };
 
 const TAB_LABELS: Record<ProfileTabKey, string> = {
@@ -451,6 +455,9 @@ export const ChatProfileMediaSection = React.memo(function ChatProfileMediaSecti
   onOpenVideoNote,
   onOpenActionMenu,
   peerFirstLineId,
+  canLoadMore = false,
+  loadingMore = false,
+  onLoadMore,
 }: ChatProfileMediaSectionProps) {
   const { colors: themeColors } = useTheme();
   const styles = useMemo(
@@ -594,6 +601,17 @@ export const ChatProfileMediaSection = React.memo(function ChatProfileMediaSecti
     <View style={styles.mediaSectionCard}>
       <ProfileTabsBar activeTab={activeTab} tabCounts={tabCounts} onChangeTab={onChangeTab} />
       {tabContent}
+      {onLoadMore && canLoadMore && tabCounts[activeTab] > 0 ? (
+        <Pressable
+          onPress={onLoadMore}
+          disabled={loadingMore}
+          style={{ minHeight: 48, alignItems: 'center', justifyContent: 'center', marginTop: 8 }}
+        >
+          <Text style={{ fontSize: 14, fontWeight: '800', color: themeColors.accent }}>
+            {loadingMore ? 'Загружаем…' : 'Показать ещё'}
+          </Text>
+        </Pressable>
+      ) : null}
     </View>
   );
 });

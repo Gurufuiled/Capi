@@ -511,7 +511,7 @@ const PinnedBanner = React.memo(function PinnedBanner({
         <View style={st.pinnedAccent} />
         <Pressable onPress={onPinnedPress} style={st.pinnedMainPressable}>
           <View style={st.pinnedContent}>
-            <Text style={st.pinnedTitle}>Закрепленное сообщение</Text>
+            <Text style={st.pinnedTitle}>Закреплённое сообщение</Text>
             <Text numberOfLines={1} style={st.pinnedText}>
               {pinnedMessageText}
             </Text>
